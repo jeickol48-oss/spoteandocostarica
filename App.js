@@ -1,11 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Image,
   Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
-  TextInput,
   Text,
   TouchableOpacity,
   View,
@@ -45,53 +44,6 @@ const seedSpots = [
 
 export default function App() {
   const [spots, setSpots] = useState(seedSpots);
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    mapUrl: "",
-    tags: "",
-    imageUrl: "",
-  });
-
-  const canSubmit = useMemo(
-    () => form.name.trim() && form.mapUrl.trim(),
-    [form.name, form.mapUrl]
-  );
-
-  const updateField = (key, value) => {
-    setForm((current) => ({ ...current, [key]: value }));
-  };
-
-  const handleAddSpot = () => {
-    if (!canSubmit) {
-      return;
-    }
-
-    const newSpot = {
-      id: Date.now().toString(),
-      name: form.name.trim(),
-      description: form.description.trim(),
-      mapUrl: form.mapUrl.trim(),
-      tags: form.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      imageUrl: form.imageUrl.trim(),
-      distance: "3.0 km",
-      duration: "1 h 45 min",
-      level: "Moderado",
-      location: "Costa Rica",
-    };
-
-    setSpots((current) => [newSpot, ...current]);
-    setForm({
-      name: "",
-      description: "",
-      mapUrl: "",
-      tags: "",
-      imageUrl: "",
-    });
-  };
 
   const handleOpenMap = async (url) => {
     if (!url) {
@@ -112,181 +64,86 @@ export default function App() {
     return fallbackImageUrl;
   };
 
+  const normalizeSpot = (spot) => ({
+    ...spot,
+    imageUrl: resolveImageUrl(spot.imageUrl),
+    tags: Array.isArray(spot.tags) ? spot.tags : [],
+    location: spot.location || "Costa Rica",
+    distance: spot.distance || "—",
+    duration: spot.duration || "—",
+    level: spot.level || "—",
+    user: spot.user || "@CR_Adventures",
+  });
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Spoteando</Text>
-        <Text style={styles.headerSubtitle}>Costa Rica</Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.headerTitle}>Spoteando</Text>
+            <Text style={styles.headerSubtitle}>Costa Rica</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <Text style={styles.headerIcon}>♡</Text>
+            <Text style={styles.headerIcon}>✉️</Text>
+          </View>
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.trendingSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Personas en tendencia</Text>
-            <Text style={styles.sectionCount}>Semana</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => (
-              <View key={`trend-${spot.id}`} style={styles.trendingAvatarCard}>
-                <Image
-                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
-                  style={styles.trendingAvatar}
-                />
-                <Text style={styles.trendingName}>{spot.name}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.viralSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Publicaciones virales</Text>
-            <Text style={styles.sectionCount}>Top hoy</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => (
-              <View key={`viral-${spot.id}`} style={styles.viralCard}>
-                <Image
-                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
-                  style={styles.viralImage}
-                />
-                <View style={styles.viralContent}>
-                  <Text style={styles.viralTitle}>{spot.name}</Text>
-                  <Text style={styles.viralMeta}>
-                    {spot.location} · {spot.distance}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.searchCard}>
-          <Text style={styles.searchTitle}>Encuentra tu próximo spot</Text>
-          <View style={styles.searchRow}>
-            <TextInput
-              placeholder="Busca playas, cataratas, senderos..."
-              placeholderTextColor="#6b7280"
-              style={styles.searchInput}
+        <View style={styles.profileRow}>
+          <View style={styles.profileLeft}>
+            <Image
+              source={{ uri: fallbackImageUrl }}
+              style={styles.profileAvatar}
             />
-            <TouchableOpacity style={styles.searchButton}>
-              <Text style={styles.searchButtonText}>Buscar</Text>
-            </TouchableOpacity>
+            <View>
+              <Text style={styles.profileHandle}>@CR_Adventures</Text>
+              <Text style={styles.profileSubtitle}>
+                Explorando Costa Rica
+              </Text>
+            </View>
           </View>
-          <View style={styles.filterRow}>
-            <TouchableOpacity style={styles.filterChipActive}>
-              <Text style={styles.filterChipActiveText}>Spots</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>Favoritos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterChip}>
-              <Text style={styles.filterChipText}>Mapa</Text>
-            </TouchableOpacity>
+          <View style={styles.profileActions}>
+            <Text style={styles.profileActionIcon}>🔔</Text>
+            <Text style={styles.profileActionIcon}>⋯</Text>
           </View>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Spots destacados</Text>
-          <Text style={styles.sectionCount}>{spots.length} lugares</Text>
+          <Text style={styles.sectionTitle}>Publicaciones destacadas</Text>
+          <Text style={styles.sectionCount}>{spots.length} spots</Text>
         </View>
 
-        {spots.map((spot) => (
-          <View key={spot.id} style={styles.spotCard}>
-            <Image
-              source={{ uri: resolveImageUrl(spot.imageUrl) }}
-              style={styles.spotImage}
-            />
-            <View style={styles.spotContent}>
-              <View style={styles.spotTitleRow}>
-                <Text style={styles.spotName}>{spot.name}</Text>
-                <View style={styles.favoriteBadge}>
-                  <Text style={styles.favoriteBadgeText}>♡</Text>
-                </View>
-              </View>
-              <Text style={styles.spotLocation}>{spot.location}</Text>
-              <Text style={styles.spotDescription}>{spot.description}</Text>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Distancia</Text>
-                  <Text style={styles.metaValue}>{spot.distance}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Duración</Text>
-                  <Text style={styles.metaValue}>{spot.duration}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Nivel</Text>
-                  <Text style={styles.metaValue}>{spot.level}</Text>
-                </View>
-              </View>
-              <View style={styles.tags}>
-                {spot.tags.map((tag) => (
-                  <Text key={`${spot.id}-${tag}`} style={styles.tag}>
-                    {tag}
+        <View style={styles.feedGrid}>
+          {spots.map((spot) => {
+            const normalizedSpot = normalizeSpot(spot);
+            return (
+              <View key={normalizedSpot.id} style={styles.feedCard}>
+                <Image
+                  source={{ uri: normalizedSpot.imageUrl }}
+                  style={styles.feedImage}
+                />
+                <View style={styles.feedMeta}>
+                  <Text style={styles.feedLocation}>
+                    📍 {normalizedSpot.location}
                   </Text>
-                ))}
+                  <Text style={styles.feedName}>{normalizedSpot.name}</Text>
+                  <View style={styles.feedFooter}>
+                    <Text style={styles.feedUser}>{normalizedSpot.user}</Text>
+                    <TouchableOpacity
+                      style={styles.feedAction}
+                      onPress={() => handleOpenMap(normalizedSpot.mapUrl)}
+                    >
+                      <Text style={styles.feedActionText}>Mapa</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => handleOpenMap(spot.mapUrl)}
-              >
-                <Text style={styles.linkText}>Abrir en mapas</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Nuevo spot</Text>
-          <TextInput
-            placeholder="Nombre del spot"
-            value={form.name}
-            onChangeText={(value) => updateField("name", value)}
-            style={styles.input}
-            placeholderTextColor="#94a3b8"
-          />
-          <TextInput
-            placeholder="Descripción"
-            value={form.description}
-            onChangeText={(value) => updateField("description", value)}
-            style={[styles.input, styles.multilineInput]}
-            multiline
-            numberOfLines={3}
-            placeholderTextColor="#94a3b8"
-          />
-          <TextInput
-            placeholder="Enlace de mapa (Google Maps u otro)"
-            value={form.mapUrl}
-            onChangeText={(value) => updateField("mapUrl", value)}
-            style={styles.input}
-            autoCapitalize="none"
-            placeholderTextColor="#94a3b8"
-          />
-          <TextInput
-            placeholder="Etiquetas (separadas por coma)"
-            value={form.tags}
-            onChangeText={(value) => updateField("tags", value)}
-            style={styles.input}
-            placeholderTextColor="#94a3b8"
-          />
-          <TextInput
-            placeholder="URL de imagen"
-            value={form.imageUrl}
-            onChangeText={(value) => updateField("imageUrl", value)}
-            style={styles.input}
-            autoCapitalize="none"
-            placeholderTextColor="#94a3b8"
-          />
-          <TouchableOpacity
-            onPress={handleAddSpot}
-            style={[styles.button, !canSubmit && styles.buttonDisabled]}
-            disabled={!canSubmit}
-          >
-            <Text style={styles.buttonText}>Agregar spot</Text>
-          </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
       <View style={styles.bottomNav}>
@@ -316,7 +173,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#f8f9fb",
   },
   container: {
     padding: 20,
@@ -326,7 +183,12 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 12,
-    backgroundColor: "#2f6b2f",
+    backgroundColor: "#0b4f6c",
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 24,
@@ -335,77 +197,16 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#d1fae5",
+    color: "#e6f2ff",
     marginTop: 2,
   },
-  searchCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    padding: 16,
-    marginTop: 12,
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
-  },
-  searchTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 12,
-  },
-  searchRow: {
+  headerActions: {
     flexDirection: "row",
-    alignItems: "center",
+    gap: 12,
   },
-  searchInput: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    marginRight: 10,
-    color: "#111827",
-  },
-  searchButton: {
-    backgroundColor: "#2f6b2f",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-  },
-  searchButtonText: {
+  headerIcon: {
     color: "#ffffff",
-    fontWeight: "600",
-  },
-  filterRow: {
-    flexDirection: "row",
-    marginTop: 12,
-  },
-  filterChipActive: {
-    backgroundColor: "#2f6b2f",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    marginRight: 8,
-  },
-  filterChipActiveText: {
-    color: "#ffffff",
-    fontWeight: "600",
-    fontSize: 12,
-  },
-  filterChip: {
-    backgroundColor: "#e5e7eb",
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    marginRight: 8,
-  },
-  filterChipText: {
-    color: "#374151",
-    fontWeight: "600",
-    fontSize: 12,
+    fontSize: 18,
   },
   sectionTitle: {
     fontSize: 18,
@@ -423,199 +224,96 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontSize: 12,
   },
-  trendingSection: {
-    marginBottom: 12,
-  },
-  trendingAvatarCard: {
-    width: 90,
-    marginRight: 12,
-    alignItems: "center",
-  },
-  trendingAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: "#2f6b2f",
-  },
-  trendingName: {
-    marginTop: 6,
-    fontSize: 11,
-    color: "#374151",
-    textAlign: "center",
-  },
-  viralSection: {
-    marginBottom: 12,
-  },
-  viralCard: {
-    width: 220,
-    marginRight: 14,
-    borderRadius: 16,
+  profileRow: {
     backgroundColor: "#ffffff",
-    overflow: "hidden",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#e6edf5",
   },
-  viralImage: {
+  profileLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  profileAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 2,
+    borderColor: "#d62828",
+  },
+  profileHandle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0b4f6c",
+  },
+  profileSubtitle: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  profileActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  profileActionIcon: {
+    fontSize: 18,
+    color: "#d62828",
+  },
+  feedGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  feedCard: {
+    width: "48%",
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    marginBottom: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e6edf5",
+  },
+  feedImage: {
     width: "100%",
     height: 120,
   },
-  viralContent: {
-    padding: 12,
+  feedMeta: {
+    padding: 10,
   },
-  viralTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  viralMeta: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  card: {
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "#ffffff",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 14,
-    backgroundColor: "#f9fafb",
-    color: "#111827",
-  },
-  multilineInput: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  button: {
-    backgroundColor: "#2f6b2f",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#9ca3af",
-  },
-  buttonText: {
-    color: "#ffffff",
+  feedLocation: {
+    fontSize: 11,
+    color: "#d62828",
     fontWeight: "600",
   },
-  spotCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
-    marginBottom: 18,
-    overflow: "hidden",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
-  },
-  spotImage: {
-    width: "100%",
-    height: 160,
-  },
-  spotContent: {
-    padding: 16,
-  },
-  spotTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  favoriteBadge: {
-    backgroundColor: "#fef3c7",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  favoriteBadgeText: {
-    fontSize: 16,
-    color: "#b45309",
-  },
-  spotLocation: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#6b7280",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-  },
-  spotName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111827",
-    flex: 1,
-    marginRight: 12,
-  },
-  spotDescription: {
-    marginTop: 8,
-    color: "#4b5563",
+  feedName: {
     fontSize: 13,
+    fontWeight: "700",
+    color: "#0b4f6c",
+    marginTop: 4,
   },
-  metaRow: {
+  feedFooter: {
+    marginTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 12,
-    backgroundColor: "#f9fafb",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  metaItem: {
     alignItems: "center",
   },
-  metaLabel: {
-    fontSize: 10,
+  feedUser: {
+    fontSize: 11,
     color: "#6b7280",
-    textTransform: "uppercase",
   },
-  metaValue: {
-    marginTop: 4,
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  tags: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 12,
-  },
-  tag: {
-    backgroundColor: "#e5f4e3",
-    color: "#1f4d1f",
-    paddingVertical: 4,
+  feedAction: {
+    backgroundColor: "#0b4f6c",
     paddingHorizontal: 10,
-    borderRadius: 999,
-    marginRight: 8,
-    marginBottom: 8,
-    fontSize: 12,
-  },
-  linkButton: {
-    alignSelf: "flex-start",
-    backgroundColor: "#e2f5d8",
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 999,
   },
-  linkText: {
-    color: "#2f6b2f",
+  feedActionText: {
+    color: "#ffffff",
+    fontSize: 11,
     fontWeight: "600",
   },
   bottomNav: {
@@ -650,7 +348,7 @@ const styles = StyleSheet.create({
   },
   navTextActive: {
     fontSize: 11,
-    color: "#2f6b2f",
+    color: "#d62828",
     marginTop: 2,
     fontWeight: "600",
   },
@@ -662,7 +360,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#2f6b2f",
+    backgroundColor: "#d62828",
     alignItems: "center",
     justifyContent: "center",
     marginTop: -18,
@@ -674,7 +372,7 @@ const styles = StyleSheet.create({
   },
   navAddLabel: {
     fontSize: 10,
-    color: "#2f6b2f",
+    color: "#0b4f6c",
     marginTop: 4,
     fontWeight: "600",
   },

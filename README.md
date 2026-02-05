@@ -27,3 +27,5 @@ npm run start
 - Autenticación social.
 - Moderación y reportes de contenido.
 - Búsqueda por filtros y mapas.
+- Modo offline para guardar spots favoritos.
+- Rankings semanales de spots más visitados.
