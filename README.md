@@ -27,3 +27,4 @@ npm run start
 - Autenticación social.
 - Moderación y reportes de contenido.
 - Búsqueda por filtros y mapas.
+- Rankings semanales de spots más visitados.
