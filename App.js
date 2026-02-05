@@ -112,16 +112,6 @@ export default function App() {
     return fallbackImageUrl;
   };
 
-  const normalizeSpot = (spot) => ({
-    ...spot,
-    imageUrl: resolveImageUrl(spot.imageUrl),
-    tags: Array.isArray(spot.tags) ? spot.tags : [],
-    location: spot.location || "Costa Rica",
-    distance: spot.distance || "—",
-    duration: spot.duration || "—",
-    level: spot.level || "—",
-  });
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -138,21 +128,15 @@ export default function App() {
             <Text style={styles.sectionCount}>Semana</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => {
-              const normalizedSpot = normalizeSpot(spot);
-              return (
-                <View
-                  key={`trend-${normalizedSpot.id}`}
-                  style={styles.trendingAvatarCard}
-                >
-                  <Image
-                    source={{ uri: normalizedSpot.imageUrl }}
-                    style={styles.trendingAvatar}
-                  />
-                  <Text style={styles.trendingName}>{normalizedSpot.name}</Text>
-                </View>
-              );
-            })}
+            {spots.map((spot) => (
+              <View key={`trend-${spot.id}`} style={styles.trendingAvatarCard}>
+                <Image
+                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
+                  style={styles.trendingAvatar}
+                />
+                <Text style={styles.trendingName}>{spot.name}</Text>
+              </View>
+            ))}
           </ScrollView>
         </View>
 
@@ -162,23 +146,20 @@ export default function App() {
             <Text style={styles.sectionCount}>Top hoy</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => {
-              const normalizedSpot = normalizeSpot(spot);
-              return (
-                <View key={`viral-${normalizedSpot.id}`} style={styles.viralCard}>
-                  <Image
-                    source={{ uri: normalizedSpot.imageUrl }}
-                    style={styles.viralImage}
-                  />
-                  <View style={styles.viralContent}>
-                    <Text style={styles.viralTitle}>{normalizedSpot.name}</Text>
-                    <Text style={styles.viralMeta}>
-                      {normalizedSpot.location} · {normalizedSpot.distance}
-                    </Text>
-                  </View>
+            {spots.map((spot) => (
+              <View key={`viral-${spot.id}`} style={styles.viralCard}>
+                <Image
+                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
+                  style={styles.viralImage}
+                />
+                <View style={styles.viralContent}>
+                  <Text style={styles.viralTitle}>{spot.name}</Text>
+                  <Text style={styles.viralMeta}>
+                    {spot.location} · {spot.distance}
+                  </Text>
                 </View>
-              );
-            })}
+              </View>
+            ))}
           </ScrollView>
         </View>
 
@@ -212,60 +193,51 @@ export default function App() {
           <Text style={styles.sectionCount}>{spots.length} lugares</Text>
         </View>
 
-        {spots.map((spot) => {
-          const normalizedSpot = normalizeSpot(spot);
-          return (
-            <View key={normalizedSpot.id} style={styles.spotCard}>
-              <Image
-                source={{ uri: normalizedSpot.imageUrl }}
-                style={styles.spotImage}
-              />
-              <View style={styles.spotContent}>
-                <View style={styles.spotTitleRow}>
-                  <Text style={styles.spotName}>{normalizedSpot.name}</Text>
-                  <View style={styles.favoriteBadge}>
-                    <Text style={styles.favoriteBadgeText}>♡</Text>
-                  </View>
+        {spots.map((spot) => (
+          <View key={spot.id} style={styles.spotCard}>
+            <Image
+              source={{ uri: resolveImageUrl(spot.imageUrl) }}
+              style={styles.spotImage}
+            />
+            <View style={styles.spotContent}>
+              <View style={styles.spotTitleRow}>
+                <Text style={styles.spotName}>{spot.name}</Text>
+                <View style={styles.favoriteBadge}>
+                  <Text style={styles.favoriteBadgeText}>♡</Text>
                 </View>
-                <Text style={styles.spotLocation}>{normalizedSpot.location}</Text>
-                <Text style={styles.spotDescription}>
-                  {normalizedSpot.description}
-                </Text>
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaLabel}>Distancia</Text>
-                    <Text style={styles.metaValue}>
-                      {normalizedSpot.distance}
-                    </Text>
-                  </View>
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaLabel}>Duración</Text>
-                    <Text style={styles.metaValue}>
-                      {normalizedSpot.duration}
-                    </Text>
-                  </View>
-                  <View style={styles.metaItem}>
-                    <Text style={styles.metaLabel}>Nivel</Text>
-                    <Text style={styles.metaValue}>{normalizedSpot.level}</Text>
-                  </View>
-                </View>
-                <View style={styles.tags}>
-                  {normalizedSpot.tags.map((tag) => (
-                    <Text key={`${normalizedSpot.id}-${tag}`} style={styles.tag}>
-                      {tag}
-                    </Text>
-                  ))}
-                </View>
-                <TouchableOpacity
-                  style={styles.linkButton}
-                  onPress={() => handleOpenMap(normalizedSpot.mapUrl)}
-                >
-                  <Text style={styles.linkText}>Abrir en mapas</Text>
-                </TouchableOpacity>
               </View>
+              <Text style={styles.spotLocation}>{spot.location}</Text>
+              <Text style={styles.spotDescription}>{spot.description}</Text>
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Distancia</Text>
+                  <Text style={styles.metaValue}>{spot.distance}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Duración</Text>
+                  <Text style={styles.metaValue}>{spot.duration}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Nivel</Text>
+                  <Text style={styles.metaValue}>{spot.level}</Text>
+                </View>
+              </View>
+              <View style={styles.tags}>
+                {spot.tags.map((tag) => (
+                  <Text key={`${spot.id}-${tag}`} style={styles.tag}>
+                    {tag}
+                  </Text>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => handleOpenMap(spot.mapUrl)}
+              >
+                <Text style={styles.linkText}>Abrir en mapas</Text>
+              </TouchableOpacity>
             </View>
-          );
-        })}
+          </View>
+        ))}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Nuevo spot</Text>
@@ -344,7 +316,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f6f2ff",
+    backgroundColor: "#f3f4f6",
   },
   container: {
     padding: 20,
@@ -354,16 +326,16 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 12,
-    backgroundColor: "#cdb4db",
+    backgroundColor: "#2f6b2f",
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#3f2a56",
+    color: "#ffffff",
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#5a4173",
+    color: "#d1fae5",
     marginTop: 2,
   },
   searchCard: {
@@ -389,7 +361,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    backgroundColor: "#f9f1ff",
+    backgroundColor: "#f3f4f6",
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -398,13 +370,13 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   searchButton: {
-    backgroundColor: "#a7c7e7",
+    backgroundColor: "#2f6b2f",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
   },
   searchButtonText: {
-    color: "#1f2a44",
+    color: "#ffffff",
     fontWeight: "600",
   },
   filterRow: {
@@ -412,26 +384,26 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   filterChipActive: {
-    backgroundColor: "#a7c7e7",
+    backgroundColor: "#2f6b2f",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 999,
     marginRight: 8,
   },
   filterChipActiveText: {
-    color: "#1f2a44",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: 12,
   },
   filterChip: {
-    backgroundColor: "#fce1e4",
+    backgroundColor: "#e5e7eb",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 999,
     marginRight: 8,
   },
   filterChipText: {
-    color: "#6b3b47",
+    color: "#374151",
     fontWeight: "600",
     fontSize: 12,
   },
@@ -464,7 +436,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#a7c7e7",
+    borderColor: "#2f6b2f",
   },
   trendingName: {
     marginTop: 6,
@@ -530,7 +502,7 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   button: {
-    backgroundColor: "#b7e4c7",
+    backgroundColor: "#2f6b2f",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -625,8 +597,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   tag: {
-    backgroundColor: "#d8f3dc",
-    color: "#2c4a3b",
+    backgroundColor: "#e5f4e3",
+    color: "#1f4d1f",
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 999,
@@ -636,14 +608,14 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     alignSelf: "flex-start",
-    backgroundColor: "#cde7f0",
+    backgroundColor: "#e2f5d8",
     marginTop: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
   },
   linkText: {
-    color: "#2a5d79",
+    color: "#2f6b2f",
     fontWeight: "600",
   },
   bottomNav: {
@@ -678,7 +650,7 @@ const styles = StyleSheet.create({
   },
   navTextActive: {
     fontSize: 11,
-    color: "#5b6d9c",
+    color: "#2f6b2f",
     marginTop: 2,
     fontWeight: "600",
   },
@@ -690,7 +662,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#a7c7e7",
+    backgroundColor: "#2f6b2f",
     alignItems: "center",
     justifyContent: "center",
     marginTop: -18,
@@ -702,12 +674,12 @@ const styles = StyleSheet.create({
   },
   navAddLabel: {
     fontSize: 10,
-    color: "#5b6d9c",
+    color: "#2f6b2f",
     marginTop: 4,
     fontWeight: "600",
   },
   navAddIcon: {
-    color: "#1f2a44",
+    color: "#ffffff",
     fontSize: 26,
     fontWeight: "700",
   },
