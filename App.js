@@ -11,6 +11,9 @@ import {
   View,
 } from "react-native";
 
+const fallbackImageUrl =
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
+
 const seedSpots = [
   {
     id: "1",
@@ -101,6 +104,14 @@ export default function App() {
     }
   };
 
+  const resolveImageUrl = (url) => {
+    if (url && url.trim().length > 0) {
+      return url;
+    }
+
+    return fallbackImageUrl;
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -119,7 +130,10 @@ export default function App() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {spots.map((spot) => (
               <View key={`viral-${spot.id}`} style={styles.viralCard}>
-                <Image source={{ uri: spot.imageUrl }} style={styles.viralImage} />
+                <Image
+                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
+                  style={styles.viralImage}
+                />
                 <View style={styles.viralContent}>
                   <Text style={styles.viralTitle}>{spot.name}</Text>
                   <Text style={styles.viralMeta}>
@@ -163,7 +177,10 @@ export default function App() {
 
         {spots.map((spot) => (
           <View key={spot.id} style={styles.spotCard}>
-            <Image source={{ uri: spot.imageUrl }} style={styles.spotImage} />
+            <Image
+              source={{ uri: resolveImageUrl(spot.imageUrl) }}
+              style={styles.spotImage}
+            />
             <View style={styles.spotContent}>
               <View style={styles.spotTitleRow}>
                 <Text style={styles.spotName}>{spot.name}</Text>
