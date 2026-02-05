@@ -112,6 +112,16 @@ export default function App() {
     return fallbackImageUrl;
   };
 
+  const normalizeSpot = (spot) => ({
+    ...spot,
+    imageUrl: resolveImageUrl(spot.imageUrl),
+    tags: Array.isArray(spot.tags) ? spot.tags : [],
+    location: spot.location || "Costa Rica",
+    distance: spot.distance || "—",
+    duration: spot.duration || "—",
+    level: spot.level || "—",
+  });
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -128,15 +138,21 @@ export default function App() {
             <Text style={styles.sectionCount}>Semana</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => (
-              <View key={`trend-${spot.id}`} style={styles.trendingAvatarCard}>
-                <Image
-                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
-                  style={styles.trendingAvatar}
-                />
-                <Text style={styles.trendingName}>{spot.name}</Text>
-              </View>
-            ))}
+            {spots.map((spot) => {
+              const normalizedSpot = normalizeSpot(spot);
+              return (
+                <View
+                  key={`trend-${normalizedSpot.id}`}
+                  style={styles.trendingAvatarCard}
+                >
+                  <Image
+                    source={{ uri: normalizedSpot.imageUrl }}
+                    style={styles.trendingAvatar}
+                  />
+                  <Text style={styles.trendingName}>{normalizedSpot.name}</Text>
+                </View>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -146,20 +162,23 @@ export default function App() {
             <Text style={styles.sectionCount}>Top hoy</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {spots.map((spot) => (
-              <View key={`viral-${spot.id}`} style={styles.viralCard}>
-                <Image
-                  source={{ uri: resolveImageUrl(spot.imageUrl) }}
-                  style={styles.viralImage}
-                />
-                <View style={styles.viralContent}>
-                  <Text style={styles.viralTitle}>{spot.name}</Text>
-                  <Text style={styles.viralMeta}>
-                    {spot.location} · {spot.distance}
-                  </Text>
+            {spots.map((spot) => {
+              const normalizedSpot = normalizeSpot(spot);
+              return (
+                <View key={`viral-${normalizedSpot.id}`} style={styles.viralCard}>
+                  <Image
+                    source={{ uri: normalizedSpot.imageUrl }}
+                    style={styles.viralImage}
+                  />
+                  <View style={styles.viralContent}>
+                    <Text style={styles.viralTitle}>{normalizedSpot.name}</Text>
+                    <Text style={styles.viralMeta}>
+                      {normalizedSpot.location} · {normalizedSpot.distance}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -193,51 +212,60 @@ export default function App() {
           <Text style={styles.sectionCount}>{spots.length} lugares</Text>
         </View>
 
-        {spots.map((spot) => (
-          <View key={spot.id} style={styles.spotCard}>
-            <Image
-              source={{ uri: resolveImageUrl(spot.imageUrl) }}
-              style={styles.spotImage}
-            />
-            <View style={styles.spotContent}>
-              <View style={styles.spotTitleRow}>
-                <Text style={styles.spotName}>{spot.name}</Text>
-                <View style={styles.favoriteBadge}>
-                  <Text style={styles.favoriteBadgeText}>♡</Text>
+        {spots.map((spot) => {
+          const normalizedSpot = normalizeSpot(spot);
+          return (
+            <View key={normalizedSpot.id} style={styles.spotCard}>
+              <Image
+                source={{ uri: normalizedSpot.imageUrl }}
+                style={styles.spotImage}
+              />
+              <View style={styles.spotContent}>
+                <View style={styles.spotTitleRow}>
+                  <Text style={styles.spotName}>{normalizedSpot.name}</Text>
+                  <View style={styles.favoriteBadge}>
+                    <Text style={styles.favoriteBadgeText}>♡</Text>
+                  </View>
                 </View>
+                <Text style={styles.spotLocation}>{normalizedSpot.location}</Text>
+                <Text style={styles.spotDescription}>
+                  {normalizedSpot.description}
+                </Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Distancia</Text>
+                    <Text style={styles.metaValue}>
+                      {normalizedSpot.distance}
+                    </Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Duración</Text>
+                    <Text style={styles.metaValue}>
+                      {normalizedSpot.duration}
+                    </Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Nivel</Text>
+                    <Text style={styles.metaValue}>{normalizedSpot.level}</Text>
+                  </View>
+                </View>
+                <View style={styles.tags}>
+                  {normalizedSpot.tags.map((tag) => (
+                    <Text key={`${normalizedSpot.id}-${tag}`} style={styles.tag}>
+                      {tag}
+                    </Text>
+                  ))}
+                </View>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={() => handleOpenMap(normalizedSpot.mapUrl)}
+                >
+                  <Text style={styles.linkText}>Abrir en mapas</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.spotLocation}>{spot.location}</Text>
-              <Text style={styles.spotDescription}>{spot.description}</Text>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Distancia</Text>
-                  <Text style={styles.metaValue}>{spot.distance}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Duración</Text>
-                  <Text style={styles.metaValue}>{spot.duration}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Nivel</Text>
-                  <Text style={styles.metaValue}>{spot.level}</Text>
-                </View>
-              </View>
-              <View style={styles.tags}>
-                {spot.tags.map((tag) => (
-                  <Text key={`${spot.id}-${tag}`} style={styles.tag}>
-                    {tag}
-                  </Text>
-                ))}
-              </View>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => handleOpenMap(spot.mapUrl)}
-              >
-                <Text style={styles.linkText}>Abrir en mapas</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        ))}
+          );
+        })}
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Nuevo spot</Text>
