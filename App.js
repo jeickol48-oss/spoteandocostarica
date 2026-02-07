@@ -12,6 +12,8 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -103,8 +105,12 @@ export default function App() {
     province: "San José",
     type: "Playa",
     imageUrl: "",
-    latitude: "9.9281",
-    longitude: "-84.0907",
+    locationLabel: "",
+  });
+
+  const [selectedLocation, setSelectedLocation] = useState({
+    latitude: 9.9281,
+    longitude: -84.0907,
   });
 
 
@@ -141,10 +147,30 @@ export default function App() {
     [spots]
   );
 
-  const mapPreviewUrl = useMemo(() => {
-    if (!newSpot.latitude || !newSpot.longitude) return "";
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${newSpot.latitude},${newSpot.longitude}&zoom=14&size=600x300&markers=color:red%7C${newSpot.latitude},${newSpot.longitude}`;
-  }, [newSpot.latitude, newSpot.longitude]);
+  const mapRegion = useMemo(
+    () => ({
+      ...selectedLocation,
+      latitudeDelta: 0.08,
+      longitudeDelta: 0.08,
+    }),
+    [selectedLocation]
+  );
+
+  const useCurrentLocation = async () => {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert("Permiso requerido", "Activa ubicación para detectar dónde estás.");
+      return;
+    }
+
+    const current = await Location.getCurrentPositionAsync({});
+    if (current?.coords) {
+      setSelectedLocation({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+      });
+    }
+  };
 
   const pickImageFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -169,17 +195,17 @@ export default function App() {
       return;
     }
 
-    if (!newSpot.latitude.trim() || !newSpot.longitude.trim()) {
-      Alert.alert("Falta ubicación", "Completa latitud y longitud para ubicar el spot.");
+    if (!selectedLocation.latitude || !selectedLocation.longitude) {
+      Alert.alert("Falta ubicación", "Selecciona la ubicación del spot en el mapa.");
       return;
     }
 
-    const mapUrl = `https://maps.google.com/?q=${newSpot.latitude.trim()},${newSpot.longitude.trim()}`;
+    const mapUrl = `https://maps.google.com/?q=${selectedLocation.latitude},${selectedLocation.longitude}`;
 
     const createdSpot = {
       id: Date.now().toString(),
       name: newSpot.name.trim(),
-      location: newSpot.province,
+      location: newSpot.locationLabel.trim() || newSpot.province,
       province: newSpot.province,
       type: newSpot.type,
       user: "@TuUsuario",
@@ -195,8 +221,7 @@ export default function App() {
       province: "San José",
       type: "Playa",
       imageUrl: "",
-      latitude: "9.9281",
-      longitude: "-84.0907",
+      locationLabel: "",
     });
     setActiveTab("home");
   };
@@ -417,31 +442,41 @@ export default function App() {
         </ScrollView>
       </View>
 
-      <View style={styles.coordinatesRow}>
-        <TextInput
-          value={newSpot.latitude}
-          onChangeText={(value) => setNewSpot((current) => ({ ...current, latitude: value }))}
-          placeholder="Latitud"
-          placeholderTextColor="#9ca3af"
-          style={[styles.searchInput, styles.coordinateInput]}
-        />
-        <TextInput
-          value={newSpot.longitude}
-          onChangeText={(value) => setNewSpot((current) => ({ ...current, longitude: value }))}
-          placeholder="Longitud"
-          placeholderTextColor="#9ca3af"
-          style={[styles.searchInput, styles.coordinateInput]}
-        />
+      <TextInput
+        value={newSpot.locationLabel}
+        onChangeText={(value) => setNewSpot((current) => ({ ...current, locationLabel: value }))}
+        placeholder="Nombre de ubicación (ej. Mirador de Orosi)"
+        placeholderTextColor="#9ca3af"
+        style={[styles.searchInput, styles.locationLabelInput]}
+      />
+
+      <View style={styles.mapHeaderRow}>
+        <Text style={styles.filterTitle}>Ubicación exacta del spot</Text>
+        <TouchableOpacity style={styles.useLocationButton} onPress={useCurrentLocation}>
+          <Text style={styles.useLocationButtonText}>Usar mi ubicación</Text>
+        </TouchableOpacity>
       </View>
 
-      {mapPreviewUrl ? <Image source={{ uri: mapPreviewUrl }} style={styles.mapPreview} /> : null}
+      <MapView
+        style={styles.mapPreview}
+        initialRegion={mapRegion}
+        region={mapRegion}
+        onPress={(event) => setSelectedLocation(event.nativeEvent.coordinate)}
+      >
+        <Marker
+          coordinate={selectedLocation}
+          draggable
+          onDragEnd={(event) => setSelectedLocation(event.nativeEvent.coordinate)}
+        />
+      </MapView>
+
       <TouchableOpacity
         style={styles.nearbyButton}
         onPress={() =>
-          handleOpenMap(`https://maps.google.com/?q=${newSpot.latitude},${newSpot.longitude}`)
+          handleOpenMap(`https://maps.google.com/?q=${selectedLocation.latitude},${selectedLocation.longitude}`)
         }
       >
-        <Text style={styles.nearbyText}>Abrir mini mapa en Google Maps</Text>
+        <Text style={styles.nearbyText}>Abrir ubicación seleccionada en Google Maps</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
@@ -659,14 +694,27 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginTop: 10,
   },
-  coordinatesRow: {
+  locationLabelInput: {
+    marginTop: 10,
+  },
+  mapHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
-    gap: 10,
+    alignItems: "center",
+    marginTop: 12,
   },
-  coordinateInput: {
-    flex: 1,
+  useLocationButton: {
+    borderWidth: 1,
+    borderColor: "#d62828",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#fff5f5",
+  },
+  useLocationButtonText: {
+    color: "#7a1c1c",
+    fontSize: 11,
+    fontWeight: "700",
   },
   mapPreview: {
     width: "100%",
