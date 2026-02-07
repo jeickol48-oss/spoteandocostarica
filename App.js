@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
+  Alert,
   Image,
   Linking,
   SafeAreaView,
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -88,12 +90,23 @@ const provinces = [
 const spotTypes = ["Todos", "Playa", "Montaña", "Catarata", "Urbano", "Sendero"];
 
 export default function App() {
-  const [spots] = useState(seedSpots);
+  const [spots, setSpots] = useState(seedSpots);
   const [activeTab, setActiveTab] = useState("home");
   const [searchText, setSearchText] = useState("");
   const [provinceFilter, setProvinceFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [nearbyOnly, setNearbyOnly] = useState(false);
+
+  const [newSpot, setNewSpot] = useState({
+    name: "",
+    description: "",
+    province: "San José",
+    type: "Playa",
+    imageUrl: "",
+    latitude: "9.9281",
+    longitude: "-84.0907",
+  });
+
 
   const handleOpenMap = async (url) => {
     if (!url) return;
@@ -127,6 +140,66 @@ export default function App() {
     () => spots.map(normalizeSpot).filter((spot) => spot.province === userProvince),
     [spots]
   );
+
+  const mapPreviewUrl = useMemo(() => {
+    if (!newSpot.latitude || !newSpot.longitude) return "";
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${newSpot.latitude},${newSpot.longitude}&zoom=14&size=600x300&markers=color:red%7C${newSpot.latitude},${newSpot.longitude}`;
+  }, [newSpot.latitude, newSpot.longitude]);
+
+  const pickImageFromGallery = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permiso requerido", "Necesitamos permiso para acceder a tus fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setNewSpot((current) => ({ ...current, imageUrl: result.assets[0].uri }));
+    }
+  };
+
+  const handleCreateSpot = () => {
+    if (!newSpot.name.trim()) {
+      Alert.alert("Falta nombre", "Escribe el nombre del spot.");
+      return;
+    }
+
+    if (!newSpot.latitude.trim() || !newSpot.longitude.trim()) {
+      Alert.alert("Falta ubicación", "Completa latitud y longitud para ubicar el spot.");
+      return;
+    }
+
+    const mapUrl = `https://maps.google.com/?q=${newSpot.latitude.trim()},${newSpot.longitude.trim()}`;
+
+    const createdSpot = {
+      id: Date.now().toString(),
+      name: newSpot.name.trim(),
+      location: newSpot.province,
+      province: newSpot.province,
+      type: newSpot.type,
+      user: "@TuUsuario",
+      mapUrl,
+      imageUrl: newSpot.imageUrl.trim() || fallbackImageUrl,
+      description: newSpot.description.trim(),
+    };
+
+    setSpots((current) => [createdSpot, ...current]);
+    setNewSpot({
+      name: "",
+      description: "",
+      province: "San José",
+      type: "Playa",
+      imageUrl: "",
+      latitude: "9.9281",
+      longitude: "-84.0907",
+    });
+    setActiveTab("home");
+  };
 
   const renderHome = () => (
     <>
@@ -281,6 +354,107 @@ export default function App() {
     </View>
   );
 
+  const renderAddSpot = () => (
+    <View style={styles.addCard}>
+      <Text style={styles.searchTitle}>Agregar nuevo spot</Text>
+      <TextInput
+        value={newSpot.name}
+        onChangeText={(value) => setNewSpot((current) => ({ ...current, name: value }))}
+        placeholder="Nombre del spot"
+        placeholderTextColor="#9ca3af"
+        style={styles.searchInput}
+      />
+      <TextInput
+        value={newSpot.description}
+        onChangeText={(value) => setNewSpot((current) => ({ ...current, description: value }))}
+        placeholder="Descripción corta"
+        placeholderTextColor="#9ca3af"
+        style={[styles.searchInput, styles.textArea]}
+        multiline
+      />
+
+      <View style={styles.filterBlock}>
+        <Text style={styles.filterTitle}>Provincia</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {provinces.filter((province) => province !== "Todas").map((province) => (
+            <TouchableOpacity
+              key={`add-${province}`}
+              style={[styles.filterChip, newSpot.province === province && styles.filterChipActive]}
+              onPress={() => setNewSpot((current) => ({ ...current, province }))}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  newSpot.province === province && styles.filterChipTextActive,
+                ]}
+              >
+                {province}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.filterBlock}>
+        <Text style={styles.filterTitle}>Tipo de spot</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {spotTypes.filter((type) => type !== "Todos").map((type) => (
+            <TouchableOpacity
+              key={`type-${type}`}
+              style={[styles.filterChip, newSpot.type === type && styles.filterChipActive]}
+              onPress={() => setNewSpot((current) => ({ ...current, type }))}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  newSpot.type === type && styles.filterChipTextActive,
+                ]}
+              >
+                {type}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.coordinatesRow}>
+        <TextInput
+          value={newSpot.latitude}
+          onChangeText={(value) => setNewSpot((current) => ({ ...current, latitude: value }))}
+          placeholder="Latitud"
+          placeholderTextColor="#9ca3af"
+          style={[styles.searchInput, styles.coordinateInput]}
+        />
+        <TextInput
+          value={newSpot.longitude}
+          onChangeText={(value) => setNewSpot((current) => ({ ...current, longitude: value }))}
+          placeholder="Longitud"
+          placeholderTextColor="#9ca3af"
+          style={[styles.searchInput, styles.coordinateInput]}
+        />
+      </View>
+
+      {mapPreviewUrl ? <Image source={{ uri: mapPreviewUrl }} style={styles.mapPreview} /> : null}
+      <TouchableOpacity
+        style={styles.nearbyButton}
+        onPress={() =>
+          handleOpenMap(`https://maps.google.com/?q=${newSpot.latitude},${newSpot.longitude}`)
+        }
+      >
+        <Text style={styles.nearbyText}>Abrir mini mapa en Google Maps</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
+        <Text style={styles.uploadButtonText}>Cargar imagen del spot</Text>
+      </TouchableOpacity>
+      {newSpot.imageUrl ? <Image source={{ uri: newSpot.imageUrl }} style={styles.previewImage} /> : null}
+
+      <TouchableOpacity style={[styles.feedAction, styles.submitButton]} onPress={handleCreateSpot}>
+        <Text style={styles.feedActionText}>Guardar spot</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -299,7 +473,7 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {activeTab === "home" && renderHome()}
         {activeTab === "buscar" && renderSearch()}
-        {activeTab === "agregar" && renderPlaceholder("Agregar spot")}
+        {activeTab === "agregar" && renderAddSpot()}
         {activeTab === "perfil" && renderPlaceholder("Perfil")}
         {activeTab === "config" && renderPlaceholder("Configuración")}
       </ScrollView>
@@ -472,6 +646,58 @@ const styles = StyleSheet.create({
   },
   nearbyImage: { width: "100%", height: 80 },
   nearbyCardTitle: { fontSize: 12, fontWeight: "700", color: "#7a1c1c", padding: 8 },
+
+  addCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    padding: 14,
+  },
+  textArea: {
+    minHeight: 90,
+    textAlignVertical: "top",
+    marginTop: 10,
+  },
+  coordinatesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    gap: 10,
+  },
+  coordinateInput: {
+    flex: 1,
+  },
+  mapPreview: {
+    width: "100%",
+    height: 160,
+    borderRadius: 14,
+    marginTop: 12,
+    backgroundColor: "#f9eaea",
+  },
+  uploadButton: {
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d62828",
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  uploadButtonText: {
+    color: "#7a1c1c",
+    fontWeight: "700",
+  },
+  previewImage: {
+    width: "100%",
+    height: 170,
+    marginTop: 10,
+    borderRadius: 14,
+  },
+  submitButton: {
+    marginTop: 14,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
 
   placeholderCard: {
     backgroundColor: "#ffffff",
