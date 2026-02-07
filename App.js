@@ -43,7 +43,7 @@ const seedSpots = [
 ];
 
 export default function App() {
-  const [spots, setSpots] = useState(seedSpots);
+  const [spots] = useState(seedSpots);
 
   const handleOpenMap = async (url) => {
     if (!url) {
@@ -165,6 +165,10 @@ export default function App() {
           <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navText}>Perfil</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Text style={styles.navIcon}>⚙️</Text>
+          <Text style={styles.navText}>Config.</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 12,
-    backgroundColor: "#0b4f6c",
+    backgroundColor: "#7a1c1c",
   },
   headerRow: {
     flexDirection: "row",
@@ -249,7 +253,7 @@ const styles = StyleSheet.create({
   profileHandle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#0b4f6c",
+    color: "#7a1c1c",
   },
   profileSubtitle: {
     fontSize: 12,
@@ -292,7 +296,7 @@ const styles = StyleSheet.create({
   feedName: {
     fontSize: 13,
     fontWeight: "700",
-    color: "#0b4f6c",
+    color: "#7a1c1c",
     marginTop: 4,
   },
   feedFooter: {
@@ -306,7 +310,7 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
   feedAction: {
-    backgroundColor: "#0b4f6c",
+    backgroundColor: "#7a1c1c",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
@@ -372,7 +376,7 @@ const styles = StyleSheet.create({
   },
   navAddLabel: {
     fontSize: 10,
-    color: "#0b4f6c",
+    color: "#7a1c1c",
     marginTop: 4,
     fontWeight: "600",
   },
