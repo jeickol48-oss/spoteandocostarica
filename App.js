@@ -113,6 +113,14 @@ export default function App() {
     longitude: -84.0907,
   });
 
+  const [profileForm, setProfileForm] = useState({
+    fullName: "",
+    username: "",
+    bio: "",
+    avatarUrl: "",
+    photos: [],
+  });
+
 
   const handleOpenMap = async (url) => {
     if (!url) return;
@@ -187,6 +195,57 @@ export default function App() {
     if (!result.canceled && result.assets?.[0]?.uri) {
       setNewSpot((current) => ({ ...current, imageUrl: result.assets[0].uri }));
     }
+  };
+
+  const pickProfileAvatar = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permiso requerido", "Necesitamos permiso para acceder a tus fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setProfileForm((current) => ({ ...current, avatarUrl: result.assets[0].uri }));
+    }
+  };
+
+  const addPhotoToProfile = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permiso requerido", "Necesitamos permiso para acceder a tus fotos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      setProfileForm((current) => ({
+        ...current,
+        photos: [result.assets[0].uri, ...current.photos].slice(0, 12),
+      }));
+    }
+  };
+
+  const saveProfile = () => {
+    if (!profileForm.fullName.trim()) {
+      Alert.alert("Falta nombre", "Agrega tu nombre para crear el perfil.");
+      return;
+    }
+
+    if (!profileForm.username.trim()) {
+      Alert.alert("Falta usuario", "Agrega tu nombre de usuario.");
+      return;
+    }
+
+    Alert.alert("Perfil guardado", "Tu perfil se actualizó correctamente.");
   };
 
   const handleCreateSpot = () => {
@@ -490,6 +549,65 @@ export default function App() {
     </View>
   );
 
+  const renderProfile = () => (
+    <View style={styles.profileEditorCard}>
+      <Text style={styles.searchTitle}>Tu perfil</Text>
+      <View style={styles.profilePreviewRow}>
+        <Image
+          source={{ uri: profileForm.avatarUrl || fallbackImageUrl }}
+          style={styles.profilePreviewAvatar}
+        />
+        <TouchableOpacity style={styles.uploadButton} onPress={pickProfileAvatar}>
+          <Text style={styles.uploadButtonText}>Cambiar foto de perfil</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TextInput
+        value={profileForm.fullName}
+        onChangeText={(value) => setProfileForm((current) => ({ ...current, fullName: value }))}
+        placeholder="Nombre completo"
+        placeholderTextColor="#9ca3af"
+        style={[styles.searchInput, styles.locationLabelInput]}
+      />
+      <TextInput
+        value={profileForm.username}
+        onChangeText={(value) => setProfileForm((current) => ({ ...current, username: value }))}
+        placeholder="Usuario (@tu_usuario)"
+        placeholderTextColor="#9ca3af"
+        style={[styles.searchInput, styles.locationLabelInput]}
+      />
+      <TextInput
+        value={profileForm.bio}
+        onChangeText={(value) => setProfileForm((current) => ({ ...current, bio: value }))}
+        placeholder="Cuéntanos sobre ti..."
+        placeholderTextColor="#9ca3af"
+        style={[styles.searchInput, styles.textArea]}
+        multiline
+      />
+
+      <View style={styles.profileGalleryHeader}>
+        <Text style={styles.filterTitle}>Tus fotos ({profileForm.photos.length})</Text>
+        <TouchableOpacity style={styles.useLocationButton} onPress={addPhotoToProfile}>
+          <Text style={styles.useLocationButtonText}>Agregar foto</Text>
+        </TouchableOpacity>
+      </View>
+
+      {profileForm.photos.length ? (
+        <View style={styles.profilePhotosGrid}>
+          {profileForm.photos.map((uri) => (
+            <Image key={uri} source={{ uri }} style={styles.profileGalleryImage} />
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.profileSubtitle}>Aún no has agregado fotos a tu perfil.</Text>
+      )}
+
+      <TouchableOpacity style={[styles.feedAction, styles.submitButton]} onPress={saveProfile}>
+        <Text style={styles.feedActionText}>Guardar perfil</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -509,7 +627,7 @@ export default function App() {
         {activeTab === "home" && renderHome()}
         {activeTab === "buscar" && renderSearch()}
         {activeTab === "agregar" && renderAddSpot()}
-        {activeTab === "perfil" && renderPlaceholder("Perfil")}
+        {activeTab === "perfil" && renderProfile()}
         {activeTab === "config" && renderPlaceholder("Configuración")}
       </ScrollView>
 
@@ -740,6 +858,44 @@ const styles = StyleSheet.create({
     height: 170,
     marginTop: 10,
     borderRadius: 14,
+  },
+  profileEditorCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    padding: 14,
+  },
+  profilePreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 10,
+  },
+  profilePreviewAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: "#d62828",
+  },
+  profileGalleryHeader: {
+    marginTop: 10,
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  profilePhotosGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  profileGalleryImage: {
+    width: "31%",
+    height: 90,
+    borderRadius: 10,
+    marginBottom: 8,
   },
   submitButton: {
     marginTop: 14,
