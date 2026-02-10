@@ -98,6 +98,7 @@ export default function App() {
   const [provinceFilter, setProvinceFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [nearbyOnly, setNearbyOnly] = useState(false);
+  const [creatorSearchText, setCreatorSearchText] = useState("");
 
   const [newSpot, setNewSpot] = useState({
     name: "",
@@ -120,6 +121,14 @@ export default function App() {
     avatarUrl: "",
     photos: [],
   });
+
+  const [isProfileEditMode, setIsProfileEditMode] = useState(true);
+  const [savedProfile, setSavedProfile] = useState(null);
+
+  const normalizeUsername = (value) => {
+    const clean = value.trim().replace(/^@+/, "");
+    return clean ? `@${clean}` : "";
+  };
 
 
   const handleOpenMap = async (url) => {
@@ -154,6 +163,49 @@ export default function App() {
     () => spots.map(normalizeSpot).filter((spot) => spot.province === userProvince),
     [spots]
   );
+
+  const creators = useMemo(() => {
+    const profileCreator = savedProfile
+      ? [
+          {
+            username: savedProfile.username,
+            fullName: savedProfile.fullName,
+            bio: savedProfile.bio,
+            avatarUrl: savedProfile.avatarUrl,
+          },
+        ]
+      : [];
+
+    const fromSpots = spots.map((spot) => {
+      const s = normalizeSpot(spot);
+      return {
+        username: s.user,
+        fullName: s.user,
+        bio: "Creador de spots",
+        avatarUrl: s.imageUrl,
+      };
+    });
+
+    const map = new Map();
+    [...profileCreator, ...fromSpots].forEach((creator) => {
+      if (!creator.username) return;
+      if (!map.has(creator.username)) {
+        map.set(creator.username, creator);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [savedProfile, spots]);
+
+  const filteredCreators = useMemo(() => {
+    if (!creatorSearchText.trim()) return creators;
+    const query = creatorSearchText.trim().toLowerCase();
+    return creators.filter(
+      (creator) =>
+        creator.username.toLowerCase().includes(query) ||
+        creator.fullName.toLowerCase().includes(query)
+    );
+  }, [creatorSearchText, creators]);
 
   const mapRegion = useMemo(
     () => ({
@@ -245,7 +297,18 @@ export default function App() {
       return;
     }
 
-    Alert.alert("Perfil guardado", "Tu perfil se actualizó correctamente.");
+    const normalizedUsername = normalizeUsername(profileForm.username);
+    const payload = {
+      ...profileForm,
+      username: normalizedUsername,
+      fullName: profileForm.fullName.trim(),
+      bio: profileForm.bio.trim(),
+    };
+
+    setProfileForm(payload);
+    setSavedProfile(payload);
+    setIsProfileEditMode(false);
+    Alert.alert("Perfil guardado", "Así es como lo verán los demás.");
   };
 
   const handleCreateSpot = () => {
@@ -267,7 +330,7 @@ export default function App() {
       location: newSpot.locationLabel.trim() || newSpot.province,
       province: newSpot.province,
       type: newSpot.type,
-      user: "@TuUsuario",
+      user: normalizeUsername(savedProfile?.username || profileForm.username) || "@TuUsuario",
       mapUrl,
       imageUrl: newSpot.imageUrl.trim() || fallbackImageUrl,
       description: newSpot.description.trim(),
@@ -428,6 +491,30 @@ export default function App() {
           </View>
         ))}
       </ScrollView>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Buscar creadores</Text>
+        <Text style={styles.sectionCount}>{filteredCreators.length}</Text>
+      </View>
+      <TextInput
+        value={creatorSearchText}
+        onChangeText={setCreatorSearchText}
+        placeholder="Buscar perfiles de creadores..."
+        placeholderTextColor="#9ca3af"
+        style={styles.searchInput}
+      />
+      {filteredCreators.map((creator) => (
+        <View key={creator.username} style={styles.creatorCard}>
+          <Image
+            source={{ uri: creator.avatarUrl || fallbackImageUrl }}
+            style={styles.creatorAvatar}
+          />
+          <View style={styles.creatorMeta}>
+            <Text style={styles.creatorName}>{creator.fullName}</Text>
+            <Text style={styles.creatorUsername}>{creator.username}</Text>
+          </View>
+        </View>
+      ))}
     </>
   );
 
@@ -549,7 +636,7 @@ export default function App() {
     </View>
   );
 
-  const renderProfile = () => (
+  const renderProfileEditor = () => (
     <View style={styles.profileEditorCard}>
       <Text style={styles.searchTitle}>Tu perfil</Text>
       <View style={styles.profilePreviewRow}>
@@ -607,6 +694,78 @@ export default function App() {
       </TouchableOpacity>
     </View>
   );
+
+  const renderProfilePublic = () => {
+    const profile = savedProfile || {
+      fullName: "Tu nombre",
+      username: "@tu_usuario",
+      bio: "Agrega una biografía para que te conozcan.",
+      avatarUrl: "",
+      photos: [],
+    };
+
+    const mySpots = spots
+      .map(normalizeSpot)
+      .filter((spot) => spot.user === profile.username);
+
+    return (
+      <View style={styles.profileEditorCard}>
+        <View style={styles.publicHeaderRow}>
+          <Text style={styles.searchTitle}>{profile.fullName}</Text>
+          <TouchableOpacity style={styles.useLocationButton} onPress={() => setIsProfileEditMode(true)}>
+            <Text style={styles.useLocationButtonText}>Editar</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.creatorUsername}>{profile.username}</Text>
+        <Text style={styles.profileSubtitle}>{profile.bio}</Text>
+
+        <View style={styles.profilePreviewRow}>
+          <Image
+            source={{ uri: profile.avatarUrl || fallbackImageUrl }}
+            style={styles.profilePreviewAvatar}
+          />
+        </View>
+
+        <View style={styles.profileGalleryHeader}>
+          <Text style={styles.filterTitle}>Fotos del perfil ({profile.photos.length})</Text>
+        </View>
+        {profile.photos.length ? (
+          <View style={styles.profilePhotosGrid}>
+            {profile.photos.map((uri) => (
+              <Image key={uri} source={{ uri }} style={styles.profileGalleryImage} />
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.profileSubtitle}>Sin fotos en el perfil aún.</Text>
+        )}
+
+        <View style={styles.profileGalleryHeader}>
+          <Text style={styles.filterTitle}>Spots agregados ({mySpots.length})</Text>
+        </View>
+        {mySpots.length ? (
+          mySpots.map((spot) => (
+            <View key={`my-${spot.id}`} style={styles.resultCard}>
+              <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+              <View style={styles.resultMeta}>
+                <Text style={styles.resultName}>{spot.name}</Text>
+                <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
+                <TouchableOpacity
+                  style={styles.feedAction}
+                  onPress={() => handleOpenMap(spot.mapUrl)}
+                >
+                  <Text style={styles.feedActionText}>Abrir mapa</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.profileSubtitle}>Todavía no has agregado spots.</Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderProfile = () => (isProfileEditMode ? renderProfileEditor() : renderProfilePublic());
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -885,6 +1044,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  publicHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  creatorCard: {
+    marginTop: 10,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 12,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  creatorAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 10,
+  },
+  creatorMeta: {
+    flex: 1,
+  },
+  creatorName: {
+    fontSize: 14,
+    color: "#7a1c1c",
+    fontWeight: "700",
+  },
+  creatorUsername: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
   },
   profilePhotosGrid: {
     flexDirection: "row",
