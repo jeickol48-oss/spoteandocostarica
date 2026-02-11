@@ -99,6 +99,7 @@ export default function App() {
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [creatorSearchText, setCreatorSearchText] = useState("");
+  const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
 
   const [newSpot, setNewSpot] = useState({
     name: "",
@@ -125,7 +126,7 @@ export default function App() {
   const [isProfileEditMode, setIsProfileEditMode] = useState(true);
   const [savedProfile, setSavedProfile] = useState(null);
   const [savedSpotIds, setSavedSpotIds] = useState([]);
-  const [activityLog, setActivityLog] = useState([]);
+  const [viewedSpots, setViewedSpots] = useState([]);
   const [settings, setSettings] = useState({
     notifications: true,
     privateProfile: false,
@@ -159,20 +160,39 @@ export default function App() {
         input: "#fffafa",
       };
 
-  const pushActivity = (message) => {
-    setActivityLog((current) => [
-      {
-        id: Date.now().toString(),
-        message,
-        dateLabel: new Date().toLocaleString(),
-      },
-      ...current,
-    ]);
+  const themedInputStyle = {
+    backgroundColor: theme.input,
+    color: theme.text,
+    borderColor: theme.border,
+  };
+  const themedPlaceholderColor = theme.muted;
+
+  const registerViewedSpot = (spot) => {
+    if (!spot?.id) return;
+    const normalized = normalizeSpot(spot);
+    setViewedSpots((current) => {
+      const withoutCurrent = current.filter((entry) => entry.id !== normalized.id);
+      return [
+        {
+          id: normalized.id,
+          name: normalized.name,
+          province: normalized.province,
+          type: normalized.type,
+          imageUrl: normalized.imageUrl,
+          mapUrl: normalized.mapUrl,
+          dateLabel: new Date().toLocaleString(),
+        },
+        ...withoutCurrent,
+      ];
+    });
   };
 
 
-  const handleOpenMap = async (url) => {
+  const handleOpenMap = async (url, spot = null) => {
     if (!url) return;
+    if (spot) {
+      registerViewedSpot(spot);
+    }
     const supported = await Linking.canOpenURL(url);
     if (supported) await Linking.openURL(url);
   };
@@ -180,6 +200,11 @@ export default function App() {
   const normalizeSpot = (spot) => ({
     ...spot,
     imageUrl: spot.imageUrl?.trim() ? spot.imageUrl : fallbackImageUrl,
+    photos:
+      Array.isArray(spot.photos) && spot.photos.length
+        ? spot.photos
+        : [spot.imageUrl?.trim() ? spot.imageUrl : fallbackImageUrl],
+    description: spot.description || "Sin descripción por ahora.",
     location: spot.location || "Costa Rica",
     province: spot.province || "San José",
     type: spot.type || "Spot",
@@ -353,7 +378,6 @@ export default function App() {
     setProfileForm(payload);
     setSavedProfile(payload);
     setIsProfileEditMode(false);
-    pushActivity(`Actualizaste tu perfil como ${payload.username}`);
     Alert.alert("Perfil guardado", "Así es como lo verán los demás.");
   };
 
@@ -364,12 +388,6 @@ export default function App() {
       const updated = alreadySaved
         ? current.filter((id) => id !== normalized.id)
         : [normalized.id, ...current];
-
-      pushActivity(
-        alreadySaved
-          ? `Quitaste de guardados: ${normalized.name}`
-          : `Guardaste spot: ${normalized.name}`
-      );
 
       return updated;
     });
@@ -398,10 +416,10 @@ export default function App() {
       mapUrl,
       imageUrl: newSpot.imageUrl.trim() || fallbackImageUrl,
       description: newSpot.description.trim(),
+      photos: [newSpot.imageUrl.trim() || fallbackImageUrl],
     };
 
     setSpots((current) => [createdSpot, ...current]);
-    pushActivity(`Agregaste un nuevo spot: ${createdSpot.name}`);
     setNewSpot({
       name: "",
       description: "",
@@ -438,15 +456,18 @@ export default function App() {
         {spots.map((spot) => {
           const s = normalizeSpot(spot);
           return (
-            <View key={s.id} style={styles.feedCard}>
+            <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => setSelectedHomeSpot(s)}>
               <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
               <View style={styles.feedMeta}>
                 <Text style={styles.feedLocation}>📍 {s.location}</Text>
                 <Text style={styles.feedName}>{s.name}</Text>
+                <Text style={styles.feedDescriptionPreview} numberOfLines={2}>
+                  {s.description}
+                </Text>
                 <View style={styles.feedFooter}>
                   <Text style={styles.feedUser}>{s.user}</Text>
                   <View style={styles.feedFooterActions}>
-                    <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl)}>
+                    <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl, s)}>
                       <Text style={styles.feedActionText}>Mapa</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(s)}>
@@ -457,10 +478,47 @@ export default function App() {
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
+
+      {selectedHomeSpot ? (
+        <View style={styles.postOverlay}>
+          <ScrollView style={styles.postModal} contentContainerStyle={styles.postModalContent}>
+            <View style={styles.postHeaderRow}>
+              <Text style={styles.searchTitle}>{selectedHomeSpot.name}</Text>
+              <TouchableOpacity onPress={() => setSelectedHomeSpot(null)} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.postMeta}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
+            <Text style={styles.postMeta}>Tipo: {selectedHomeSpot.type} · Creador: {selectedHomeSpot.user}</Text>
+            <Text style={styles.postDescription}>{selectedHomeSpot.description}</Text>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
+              {selectedHomeSpot.photos.map((photo, index) => (
+                <Image key={`${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.postPhoto} />
+              ))}
+            </ScrollView>
+
+            <View style={styles.feedFooterActions}>
+              <TouchableOpacity
+                style={styles.feedAction}
+                onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
+              >
+                <Text style={styles.feedActionText}>Abrir mapa</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
+                <Text style={styles.secondaryActionText}>
+                  {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      ) : null}
     </>
   );
 
@@ -472,8 +530,8 @@ export default function App() {
           value={searchText}
           onChangeText={setSearchText}
           placeholder="Buscar por nombre..."
-          placeholderTextColor="#9ca3af"
-          style={styles.searchInput}
+          placeholderTextColor={themedPlaceholderColor}
+          style={[styles.searchInput, themedInputStyle]}
         />
 
         <View style={styles.filterBlock}>
@@ -545,7 +603,7 @@ export default function App() {
             <Text style={styles.resultName}>{spot.name}</Text>
             <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
             <View style={styles.feedFooterActions}>
-              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
+              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
                 <Text style={styles.feedActionText}>Abrir mapa</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
@@ -579,8 +637,8 @@ export default function App() {
         value={creatorSearchText}
         onChangeText={setCreatorSearchText}
         placeholder="Buscar perfiles de creadores..."
-        placeholderTextColor="#9ca3af"
-        style={styles.searchInput}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle]}
       />
       {filteredCreators.map((creator) => (
         <View key={creator.username} style={styles.creatorCard}>
@@ -611,15 +669,15 @@ export default function App() {
         value={newSpot.name}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, name: value }))}
         placeholder="Nombre del spot"
-        placeholderTextColor="#9ca3af"
-        style={styles.searchInput}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle]}
       />
       <TextInput
         value={newSpot.description}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, description: value }))}
         placeholder="Descripción corta"
-        placeholderTextColor="#9ca3af"
-        style={[styles.searchInput, styles.textArea]}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle, styles.textArea]}
         multiline
       />
 
@@ -671,8 +729,8 @@ export default function App() {
         value={newSpot.locationLabel}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, locationLabel: value }))}
         placeholder="Nombre de ubicación (ej. Mirador de Orosi)"
-        placeholderTextColor="#9ca3af"
-        style={[styles.searchInput, styles.locationLabelInput]}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
 
       <View style={styles.mapHeaderRow}>
@@ -732,22 +790,22 @@ export default function App() {
         value={profileForm.fullName}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, fullName: value }))}
         placeholder="Nombre completo"
-        placeholderTextColor="#9ca3af"
-        style={[styles.searchInput, styles.locationLabelInput]}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
       <TextInput
         value={profileForm.username}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, username: value }))}
         placeholder="Usuario (@tu_usuario)"
-        placeholderTextColor="#9ca3af"
-        style={[styles.searchInput, styles.locationLabelInput]}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
       <TextInput
         value={profileForm.bio}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, bio: value }))}
         placeholder="Cuéntanos sobre ti..."
-        placeholderTextColor="#9ca3af"
-        style={[styles.searchInput, styles.textArea]}
+        placeholderTextColor={themedPlaceholderColor}
+        style={[styles.searchInput, themedInputStyle, styles.textArea]}
         multiline
       />
 
@@ -830,7 +888,7 @@ export default function App() {
                 <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
                 <TouchableOpacity
                   style={styles.feedAction}
-                  onPress={() => handleOpenMap(spot.mapUrl)}
+                  onPress={() => handleOpenMap(spot.mapUrl, spot)}
                 >
                   <Text style={styles.feedActionText}>Abrir mapa</Text>
                 </TouchableOpacity>
@@ -847,11 +905,7 @@ export default function App() {
   const renderProfile = () => (isProfileEditMode ? renderProfileEditor() : renderProfilePublic());
 
   const toggleSetting = (key) => {
-    setSettings((current) => {
-      const updated = { ...current, [key]: !current[key] };
-      pushActivity(`Configuración actualizada: ${key} ${updated[key] ? "activado" : "desactivado"}`);
-      return updated;
-    });
+    setSettings((current) => ({ ...current, [key]: !current[key] }));
   };
 
   const renderSettings = () => (
@@ -897,17 +951,19 @@ export default function App() {
       </TouchableOpacity>
 
       <View style={styles.profileGalleryHeader}>
-        <Text style={[styles.filterTitle, { color: theme.text }]}>Actividad reciente ({activityLog.length})</Text>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>Actividad reciente (últimos 3 vistos)</Text>
       </View>
-      {activityLog.length ? (
-        activityLog.slice(0, 8).map((entry) => (
-          <View key={entry.id} style={[styles.activityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.activityMessage, { color: theme.text }]}>{entry.message}</Text>
-            <Text style={[styles.activityDate, { color: theme.muted }]}>{entry.dateLabel}</Text>
+      {viewedSpots.length ? (
+        viewedSpots.slice(0, 3).map((spot) => (
+          <View key={`viewed-${spot.id}`} style={[styles.activityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.activityMessage, { color: theme.text }]}>Viste: {spot.name}</Text>
+            <Text style={[styles.activityDate, { color: theme.muted }]}>
+              {spot.province} · {spot.type} · {spot.dateLabel}
+            </Text>
           </View>
         ))
       ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Todavía no hay actividad en tu cuenta.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Todavía no has visto spots recientemente.</Text>
       )}
 
       <View style={styles.profileGalleryHeader}>
@@ -920,7 +976,7 @@ export default function App() {
             <View style={styles.resultMeta}>
               <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
               <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
-              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
+              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
                 <Text style={styles.feedActionText}>Abrir mapa</Text>
               </TouchableOpacity>
             </View>
@@ -1045,6 +1101,11 @@ const styles = StyleSheet.create({
   feedMeta: { padding: 10 },
   feedLocation: { fontSize: 11, color: "#d62828", fontWeight: "600" },
   feedName: { fontSize: 13, fontWeight: "700", color: "#7a1c1c", marginTop: 4 },
+  feedDescriptionPreview: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#6b7280",
+  },
   feedFooter: {
     marginTop: 8,
     flexDirection: "row",
@@ -1069,6 +1130,68 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#7a1c1c",
     fontWeight: "700",
+  },
+  postOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(15,17,21,0.55)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  postModal: {
+    width: "100%",
+    maxHeight: "86%",
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+  },
+  postModalContent: {
+    padding: 16,
+  },
+  postHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  closeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#fff1f1",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+  },
+  closeButtonText: {
+    color: "#7a1c1c",
+    fontWeight: "700",
+  },
+  postMeta: {
+    marginTop: 6,
+    color: "#6b7280",
+    fontSize: 12,
+  },
+  postDescription: {
+    marginTop: 10,
+    color: "#111827",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  postPhotosRow: {
+    marginTop: 12,
+    marginBottom: 14,
+  },
+  postPhoto: {
+    width: 230,
+    height: 150,
+    borderRadius: 12,
+    marginRight: 10,
   },
 
   searchCard: {
