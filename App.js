@@ -466,16 +466,9 @@ export default function App() {
                 </Text>
                 <View style={styles.feedFooter}>
                   <Text style={styles.feedUser}>{s.user}</Text>
-                  <View style={styles.feedFooterActions}>
-                    <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl, s)}>
-                      <Text style={styles.feedActionText}>Mapa</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(s)}>
-                      <Text style={styles.secondaryActionText}>
-                        {savedSpotIds.includes(s.id) ? "Guardado" : "Guardar"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl, s)}>
+                    <Text style={styles.feedActionText}>Mapa</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableOpacity>
@@ -503,19 +496,12 @@ export default function App() {
               ))}
             </ScrollView>
 
-            <View style={styles.feedFooterActions}>
-              <TouchableOpacity
-                style={styles.feedAction}
-                onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
-              >
-                <Text style={styles.feedActionText}>Abrir mapa</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
-                <Text style={styles.secondaryActionText}>
-                  {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.feedAction}
+              onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
+            >
+              <Text style={styles.feedActionText}>Abrir mapa</Text>
+            </TouchableOpacity>
           </ScrollView>
         </View>
       ) : null}
