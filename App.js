@@ -14,6 +14,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
+import { Ionicons } from "@expo/vector-icons";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -442,8 +443,8 @@ export default function App() {
           </View>
         </View>
         <View style={styles.profileActions}>
-          <Text style={styles.profileActionIcon}>🔔</Text>
-          <Text style={styles.profileActionIcon}>⋯</Text>
+          <Ionicons name="notifications-outline" size={22} style={styles.profileActionIcon} />
+          <Ionicons name="ellipsis-horizontal" size={22} style={styles.profileActionIcon} />
         </View>
       </View>
 
@@ -996,8 +997,8 @@ export default function App() {
             <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
           </View>
           <View style={styles.headerActions}>
-            <Text style={styles.headerIcon}>♡</Text>
-            <Text style={styles.headerIcon}>✉</Text>
+            <Ionicons name="heart-outline" size={24} style={styles.headerIcon} />
+            <Ionicons name="mail-outline" size={24} style={styles.headerIcon} />
           </View>
         </View>
       </View>
@@ -1012,11 +1013,11 @@ export default function App() {
 
       <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("home")}>
-          <Text style={styles.navIcon}>⌂</Text>
+          <Ionicons name="home-outline" size={22} color={activeTab === "home" ? "#d62828" : "#6b7280"} />
           <Text style={activeTab === "home" ? styles.navTextActive : styles.navText}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("buscar")}>
-          <Text style={styles.navIcon}>⌕</Text>
+          <Ionicons name="search-outline" size={22} color={activeTab === "buscar" ? "#d62828" : "#6b7280"} />
           <Text style={activeTab === "buscar" ? styles.navTextActive : styles.navText}>Buscar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navAddWrapper} onPress={() => setActiveTab("agregar")}>
@@ -1026,11 +1027,11 @@ export default function App() {
           <Text style={styles.navAddLabel}>Agregar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("perfil")}>
-          <Text style={styles.navIcon}>◯</Text>
+          <Ionicons name="person-outline" size={22} color={activeTab === "perfil" ? "#d62828" : "#6b7280"} />
           <Text style={activeTab === "perfil" ? styles.navTextActive : styles.navText}>Perfil</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("config")}>
-          <Text style={styles.navIcon}>⚙</Text>
+          <Ionicons name="settings-outline" size={22} color={activeTab === "config" ? "#d62828" : "#6b7280"} />
           <Text style={activeTab === "config" ? styles.navTextActive : styles.navText}>Config.</Text>
         </TouchableOpacity>
       </View>
@@ -1492,7 +1493,6 @@ const styles = StyleSheet.create({
     borderTopColor: "#ead2d2",
   },
   navItem: { alignItems: "center", justifyContent: "center", paddingVertical: 4, minWidth: 54 },
-  navIcon: { fontSize: 18 },
   navText: { fontSize: 11, color: "#6b7280", marginTop: 2 },
   navTextActive: { fontSize: 11, color: "#d62828", marginTop: 2, fontWeight: "600" },
   navAddWrapper: { alignItems: "center", minWidth: 70 },
