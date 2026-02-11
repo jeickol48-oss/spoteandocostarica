@@ -898,7 +898,7 @@ export default function App() {
     <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <Text style={[styles.searchTitle, { color: theme.text }]}>Configuración</Text>
 
-      <View style={styles.settingRow}>
+      <View style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}>
         <Text style={[styles.settingLabel, { color: theme.text }]}>Tono de la app</Text>
         <View style={styles.themeToggleRow}>
           <TouchableOpacity
@@ -927,13 +927,19 @@ export default function App() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("notifications")}>
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
+        onPress={() => toggleSetting("notifications")}
+      >
         <Text style={[styles.settingLabel, { color: theme.text }]}>Notificaciones</Text>
-        <Text style={styles.settingValue}>{settings.notifications ? "ON" : "OFF"}</Text>
+        <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>{settings.notifications ? "ON" : "OFF"}</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("privateProfile")}>
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
+        onPress={() => toggleSetting("privateProfile")}
+      >
         <Text style={[styles.settingLabel, { color: theme.text }]}>Perfil privado</Text>
-        <Text style={styles.settingValue}>{settings.privateProfile ? "ON" : "OFF"}</Text>
+        <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>{settings.privateProfile ? "ON" : "OFF"}</Text>
       </TouchableOpacity>
 
       <View style={styles.profileGalleryHeader}>
