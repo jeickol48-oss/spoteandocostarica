@@ -448,8 +448,8 @@ export default function App() {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Publicaciones destacadas</Text>
-        <Text style={styles.sectionCount}>{spots.length} spots</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Publicaciones destacadas</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{spots.length} spots</Text>
       </View>
 
       <View style={styles.feedGrid}>
