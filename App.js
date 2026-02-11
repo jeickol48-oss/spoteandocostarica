@@ -137,6 +137,28 @@ export default function App() {
     return clean ? `@${clean}` : "";
   };
 
+  const theme = settings.darkMode
+    ? {
+        background: "#0f1115",
+        surface: "#1c212b",
+        border: "#2f3745",
+        text: "#f3f4f6",
+        muted: "#aab3c2",
+        header: "#310f0f",
+        nav: "#1a1f29",
+        input: "#222936",
+      }
+    : {
+        background: "#f8f9fb",
+        surface: "#ffffff",
+        border: "#f0dada",
+        text: "#111827",
+        muted: "#6b7280",
+        header: "#7a1c1c",
+        nav: "#ffffff",
+        input: "#fffafa",
+      };
+
   const pushActivity = (message) => {
     setActivityLog((current) => [
       {
@@ -833,46 +855,71 @@ export default function App() {
   };
 
   const renderSettings = () => (
-    <View style={styles.profileEditorCard}>
-      <Text style={styles.searchTitle}>Configuración</Text>
+    <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <Text style={[styles.searchTitle, { color: theme.text }]}>Configuración</Text>
+
+      <View style={styles.settingRow}>
+        <Text style={[styles.settingLabel, { color: theme.text }]}>Tono de la app</Text>
+        <View style={styles.themeToggleRow}>
+          <TouchableOpacity
+            style={[styles.themeButton, !settings.darkMode && styles.themeButtonActive]}
+            onPress={() => setSettings((current) => ({ ...current, darkMode: false }))}
+          >
+            <Text
+              style={[
+                styles.themeButtonText,
+                !settings.darkMode && styles.themeButtonTextActive,
+              ]}
+            >
+              Claro
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.themeButton, settings.darkMode && styles.themeButtonActive]}
+            onPress={() => setSettings((current) => ({ ...current, darkMode: true }))}
+          >
+            <Text
+              style={[styles.themeButtonText, settings.darkMode && styles.themeButtonTextActive]}
+            >
+              Oscuro
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("notifications")}>
-        <Text style={styles.settingLabel}>Notificaciones</Text>
+        <Text style={[styles.settingLabel, { color: theme.text }]}>Notificaciones</Text>
         <Text style={styles.settingValue}>{settings.notifications ? "ON" : "OFF"}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("privateProfile")}>
-        <Text style={styles.settingLabel}>Perfil privado</Text>
+        <Text style={[styles.settingLabel, { color: theme.text }]}>Perfil privado</Text>
         <Text style={styles.settingValue}>{settings.privateProfile ? "ON" : "OFF"}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("darkMode")}>
-        <Text style={styles.settingLabel}>Modo oscuro (preview)</Text>
-        <Text style={styles.settingValue}>{settings.darkMode ? "ON" : "OFF"}</Text>
       </TouchableOpacity>
 
       <View style={styles.profileGalleryHeader}>
-        <Text style={styles.filterTitle}>Actividad reciente ({activityLog.length})</Text>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>Actividad reciente ({activityLog.length})</Text>
       </View>
       {activityLog.length ? (
         activityLog.slice(0, 8).map((entry) => (
-          <View key={entry.id} style={styles.activityCard}>
-            <Text style={styles.activityMessage}>{entry.message}</Text>
-            <Text style={styles.activityDate}>{entry.dateLabel}</Text>
+          <View key={entry.id} style={[styles.activityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.activityMessage, { color: theme.text }]}>{entry.message}</Text>
+            <Text style={[styles.activityDate, { color: theme.muted }]}>{entry.dateLabel}</Text>
           </View>
         ))
       ) : (
-        <Text style={styles.profileSubtitle}>Todavía no hay actividad en tu cuenta.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Todavía no hay actividad en tu cuenta.</Text>
       )}
 
       <View style={styles.profileGalleryHeader}>
-        <Text style={styles.filterTitle}>Guardados ({savedSpots.length})</Text>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>Guardados ({savedSpots.length})</Text>
       </View>
       {savedSpots.length ? (
         savedSpots.map((spot) => (
-          <View key={`saved-${spot.id}`} style={styles.resultCard}>
+          <View key={`saved-${spot.id}`} style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
             <View style={styles.resultMeta}>
-              <Text style={styles.resultName}>{spot.name}</Text>
-              <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
+              <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
+              <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
               <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
                 <Text style={styles.feedActionText}>Abrir mapa</Text>
               </TouchableOpacity>
@@ -880,18 +927,18 @@ export default function App() {
           </View>
         ))
       ) : (
-        <Text style={styles.profileSubtitle}>No tienes spots guardados todavía.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes spots guardados todavía.</Text>
       )}
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.header }]}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.headerTitle}>Spoteando</Text>
-            <Text style={styles.headerSubtitle}>Costa Rica</Text>
+            <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
           </View>
           <View style={styles.headerActions}>
             <Text style={styles.headerIcon}>♡</Text>
@@ -908,7 +955,7 @@ export default function App() {
         {activeTab === "config" && renderSettings()}
       </ScrollView>
 
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("home")}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={activeTab === "home" ? styles.navTextActive : styles.navText}>Home</Text>
@@ -1226,6 +1273,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  themeToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  themeButton: {
+    borderWidth: 1,
+    borderColor: "#d62828",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginLeft: 6,
+    backgroundColor: "#fff5f5",
+  },
+  themeButtonActive: {
+    backgroundColor: "#7a1c1c",
+  },
+  themeButtonText: {
+    color: "#7a1c1c",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  themeButtonTextActive: {
+    color: "#ffffff",
   },
   settingLabel: {
     fontSize: 14,
