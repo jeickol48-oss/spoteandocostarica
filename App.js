@@ -479,7 +479,13 @@ export default function App() {
 
       {selectedHomeSpot ? (
         <View style={styles.postOverlay}>
-          <ScrollView style={styles.postModal} contentContainerStyle={styles.postModalContent}>
+          <View style={styles.postModal}>
+            <ScrollView
+              style={styles.postModalScroll}
+              contentContainerStyle={styles.postModalContent}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
             <View style={styles.postHeaderRow}>
               <Text style={styles.searchTitle}>{selectedHomeSpot.name}</Text>
               <TouchableOpacity onPress={() => setSelectedHomeSpot(null)} style={styles.closeButton}>
@@ -510,7 +516,8 @@ export default function App() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+            </ScrollView>
+          </View>
         </View>
       ) : null}
     </>
@@ -1149,9 +1156,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#f0dada",
+    overflow: "hidden",
+  },
+  postModalScroll: {
+    flexGrow: 0,
   },
   postModalContent: {
     padding: 16,
+    paddingBottom: 18,
+    flexGrow: 0,
   },
   postHeaderRow: {
     flexDirection: "row",
