@@ -124,10 +124,28 @@ export default function App() {
 
   const [isProfileEditMode, setIsProfileEditMode] = useState(true);
   const [savedProfile, setSavedProfile] = useState(null);
+  const [savedSpotIds, setSavedSpotIds] = useState([]);
+  const [activityLog, setActivityLog] = useState([]);
+  const [settings, setSettings] = useState({
+    notifications: true,
+    privateProfile: false,
+    darkMode: false,
+  });
 
   const normalizeUsername = (value) => {
     const clean = value.trim().replace(/^@+/, "");
     return clean ? `@${clean}` : "";
+  };
+
+  const pushActivity = (message) => {
+    setActivityLog((current) => [
+      {
+        id: Date.now().toString(),
+        message,
+        dateLabel: new Date().toLocaleString(),
+      },
+      ...current,
+    ]);
   };
 
 
@@ -206,6 +224,11 @@ export default function App() {
         creator.fullName.toLowerCase().includes(query)
     );
   }, [creatorSearchText, creators]);
+
+  const savedSpots = useMemo(
+    () => spots.map(normalizeSpot).filter((spot) => savedSpotIds.includes(spot.id)),
+    [savedSpotIds, spots]
+  );
 
   const mapRegion = useMemo(
     () => ({
@@ -308,7 +331,26 @@ export default function App() {
     setProfileForm(payload);
     setSavedProfile(payload);
     setIsProfileEditMode(false);
+    pushActivity(`Actualizaste tu perfil como ${payload.username}`);
     Alert.alert("Perfil guardado", "Así es como lo verán los demás.");
+  };
+
+  const toggleSaveSpot = (spot) => {
+    const normalized = normalizeSpot(spot);
+    setSavedSpotIds((current) => {
+      const alreadySaved = current.includes(normalized.id);
+      const updated = alreadySaved
+        ? current.filter((id) => id !== normalized.id)
+        : [normalized.id, ...current];
+
+      pushActivity(
+        alreadySaved
+          ? `Quitaste de guardados: ${normalized.name}`
+          : `Guardaste spot: ${normalized.name}`
+      );
+
+      return updated;
+    });
   };
 
   const handleCreateSpot = () => {
@@ -337,6 +379,7 @@ export default function App() {
     };
 
     setSpots((current) => [createdSpot, ...current]);
+    pushActivity(`Agregaste un nuevo spot: ${createdSpot.name}`);
     setNewSpot({
       name: "",
       description: "",
@@ -380,9 +423,16 @@ export default function App() {
                 <Text style={styles.feedName}>{s.name}</Text>
                 <View style={styles.feedFooter}>
                   <Text style={styles.feedUser}>{s.user}</Text>
-                  <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl)}>
-                    <Text style={styles.feedActionText}>Mapa</Text>
-                  </TouchableOpacity>
+                  <View style={styles.feedFooterActions}>
+                    <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(s.mapUrl)}>
+                      <Text style={styles.feedActionText}>Mapa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(s)}>
+                      <Text style={styles.secondaryActionText}>
+                        {savedSpotIds.includes(s.id) ? "Guardado" : "Guardar"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -472,9 +522,16 @@ export default function App() {
           <View style={styles.resultMeta}>
             <Text style={styles.resultName}>{spot.name}</Text>
             <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
-            <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
-              <Text style={styles.feedActionText}>Abrir mapa</Text>
-            </TouchableOpacity>
+            <View style={styles.feedFooterActions}>
+              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
+                <Text style={styles.feedActionText}>Abrir mapa</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
+                <Text style={styles.secondaryActionText}>
+                  {savedSpotIds.includes(spot.id) ? "Guardado" : "Guardar"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       ))}
@@ -767,6 +824,67 @@ export default function App() {
 
   const renderProfile = () => (isProfileEditMode ? renderProfileEditor() : renderProfilePublic());
 
+  const toggleSetting = (key) => {
+    setSettings((current) => {
+      const updated = { ...current, [key]: !current[key] };
+      pushActivity(`Configuración actualizada: ${key} ${updated[key] ? "activado" : "desactivado"}`);
+      return updated;
+    });
+  };
+
+  const renderSettings = () => (
+    <View style={styles.profileEditorCard}>
+      <Text style={styles.searchTitle}>Configuración</Text>
+
+      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("notifications")}>
+        <Text style={styles.settingLabel}>Notificaciones</Text>
+        <Text style={styles.settingValue}>{settings.notifications ? "ON" : "OFF"}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("privateProfile")}>
+        <Text style={styles.settingLabel}>Perfil privado</Text>
+        <Text style={styles.settingValue}>{settings.privateProfile ? "ON" : "OFF"}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.settingRow} onPress={() => toggleSetting("darkMode")}>
+        <Text style={styles.settingLabel}>Modo oscuro (preview)</Text>
+        <Text style={styles.settingValue}>{settings.darkMode ? "ON" : "OFF"}</Text>
+      </TouchableOpacity>
+
+      <View style={styles.profileGalleryHeader}>
+        <Text style={styles.filterTitle}>Actividad reciente ({activityLog.length})</Text>
+      </View>
+      {activityLog.length ? (
+        activityLog.slice(0, 8).map((entry) => (
+          <View key={entry.id} style={styles.activityCard}>
+            <Text style={styles.activityMessage}>{entry.message}</Text>
+            <Text style={styles.activityDate}>{entry.dateLabel}</Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.profileSubtitle}>Todavía no hay actividad en tu cuenta.</Text>
+      )}
+
+      <View style={styles.profileGalleryHeader}>
+        <Text style={styles.filterTitle}>Guardados ({savedSpots.length})</Text>
+      </View>
+      {savedSpots.length ? (
+        savedSpots.map((spot) => (
+          <View key={`saved-${spot.id}`} style={styles.resultCard}>
+            <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+            <View style={styles.resultMeta}>
+              <Text style={styles.resultName}>{spot.name}</Text>
+              <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
+              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl)}>
+                <Text style={styles.feedActionText}>Abrir mapa</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.profileSubtitle}>No tienes spots guardados todavía.</Text>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -787,7 +905,7 @@ export default function App() {
         {activeTab === "buscar" && renderSearch()}
         {activeTab === "agregar" && renderAddSpot()}
         {activeTab === "perfil" && renderProfile()}
-        {activeTab === "config" && renderPlaceholder("Configuración")}
+        {activeTab === "config" && renderSettings()}
       </ScrollView>
 
       <View style={styles.bottomNav}>
@@ -886,7 +1004,25 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  feedFooterActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   feedUser: { fontSize: 11, color: "#6b7280" },
+  secondaryAction: {
+    borderWidth: 1,
+    borderColor: "#d62828",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: "#fff5f5",
+  },
+  secondaryActionText: {
+    fontSize: 11,
+    color: "#7a1c1c",
+    fontWeight: "700",
+  },
 
   searchCard: {
     backgroundColor: "#ffffff",
@@ -1078,6 +1214,46 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     marginTop: 2,
+  },
+  settingRow: {
+    backgroundColor: "#fffafa",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  settingLabel: {
+    fontSize: 14,
+    color: "#7a1c1c",
+    fontWeight: "600",
+  },
+  settingValue: {
+    fontSize: 12,
+    color: "#d62828",
+    fontWeight: "700",
+  },
+  activityCard: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+  },
+  activityMessage: {
+    color: "#7a1c1c",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  activityDate: {
+    marginTop: 3,
+    color: "#6b7280",
+    fontSize: 11,
   },
   profilePhotosGrid: {
     flexDirection: "row",
