@@ -496,12 +496,19 @@ export default function App() {
               ))}
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.feedAction}
-              onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
-            >
-              <Text style={styles.feedActionText}>Abrir mapa</Text>
-            </TouchableOpacity>
+            <View style={styles.feedFooterActions}>
+              <TouchableOpacity
+                style={styles.feedAction}
+                onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
+              >
+                <Text style={styles.feedActionText}>Abrir mapa</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
+                <Text style={styles.secondaryActionText}>
+                  {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </View>
       ) : null}
@@ -990,7 +997,7 @@ export default function App() {
           </View>
           <View style={styles.headerActions}>
             <Text style={styles.headerIcon}>♡</Text>
-            <Text style={styles.headerIcon}>✉️</Text>
+            <Text style={styles.headerIcon}>✉</Text>
           </View>
         </View>
       </View>
@@ -1005,11 +1012,11 @@ export default function App() {
 
       <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("home")}>
-          <Text style={styles.navIcon}>🏠</Text>
+          <Text style={styles.navIcon}>⌂</Text>
           <Text style={activeTab === "home" ? styles.navTextActive : styles.navText}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("buscar")}>
-          <Text style={styles.navIcon}>🔎</Text>
+          <Text style={styles.navIcon}>⌕</Text>
           <Text style={activeTab === "buscar" ? styles.navTextActive : styles.navText}>Buscar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navAddWrapper} onPress={() => setActiveTab("agregar")}>
@@ -1019,11 +1026,11 @@ export default function App() {
           <Text style={styles.navAddLabel}>Agregar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("perfil")}>
-          <Text style={styles.navIcon}>👤</Text>
+          <Text style={styles.navIcon}>◯</Text>
           <Text style={activeTab === "perfil" ? styles.navTextActive : styles.navText}>Perfil</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("config")}>
-          <Text style={styles.navIcon}>⚙️</Text>
+          <Text style={styles.navIcon}>⚙</Text>
           <Text style={activeTab === "config" ? styles.navTextActive : styles.navText}>Config.</Text>
         </TouchableOpacity>
       </View>
