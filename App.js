@@ -716,7 +716,7 @@ export default function App() {
       </View>
 
       {filteredSpots.map((spot) => (
-        <View key={spot.id} style={styles.resultCard}>
+        <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot)}>
           <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
           <View style={styles.resultMeta}>
             <Text style={styles.resultName}>{spot.name}</Text>
@@ -732,7 +732,7 @@ export default function App() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
 
       <View style={styles.sectionHeader}>
