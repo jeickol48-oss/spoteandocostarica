@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import {
   Alert,
+  Dimensions,
   Image,
   Linking,
   SafeAreaView,
@@ -20,6 +21,17 @@ const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
 
 const userProvince = "San José";
+const { width: screenWidth } = Dimensions.get("window");
+
+const provinceCoordinates = {
+  "San José": { latitude: 9.9281, longitude: -84.0907 },
+  Alajuela: { latitude: 10.0163, longitude: -84.2116 },
+  Cartago: { latitude: 9.8644, longitude: -83.9194 },
+  Heredia: { latitude: 10.0024, longitude: -84.1165 },
+  Guanacaste: { latitude: 10.6346, longitude: -85.4407 },
+  Puntarenas: { latitude: 9.9763, longitude: -84.8384 },
+  Limón: { latitude: 9.991, longitude: -83.0379 },
+};
 
 const seedSpots = [
   {
@@ -101,6 +113,18 @@ export default function App() {
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [creatorSearchText, setCreatorSearchText] = useState("");
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [commentDraft, setCommentDraft] = useState("");
+  const [spotComments, setSpotComments] = useState({
+    "1": [
+      { id: "c1", user: "@TicoRutas", text: "La caminata vale totalmente la pena." },
+      { id: "c2", user: "@AventureraCR", text: "Fui temprano y no había tanta gente." },
+    ],
+    "2": [{ id: "c3", user: "@SurfLife", text: "Atardecer increíble, recomendado." }],
+    "3": [{ id: "c4", user: "@GeoCR", text: "Lleva abrigo, arriba hace frío." }],
+    "4": [{ id: "c5", user: "@CaribeLover", text: "Ambiente super chill y buena comida." }],
+    "5": [{ id: "c6", user: "@SJWalks", text: "Perfecto para ir en familia." }],
+  });
 
   const [newSpot, setNewSpot] = useState({
     name: "",
@@ -211,6 +235,40 @@ export default function App() {
     type: spot.type || "Spot",
     user: spot.user || "@CR_Adventures",
   });
+
+  const getSpotCoordinate = (spot) => {
+    const match = spot?.mapUrl?.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (match) {
+      return {
+        latitude: Number(match[1]),
+        longitude: Number(match[2]),
+      };
+    }
+    return provinceCoordinates[spot?.province] || provinceCoordinates[userProvince];
+  };
+
+  const openHomeSpotDetail = (spot) => {
+    const normalized = normalizeSpot(spot);
+    setSelectedHomeSpot(normalized);
+    setSelectedPhotoIndex(null);
+    setCommentDraft("");
+    setActiveTab("detalle");
+    registerViewedSpot(normalized);
+  };
+
+  const handleAddComment = () => {
+    if (!selectedHomeSpot || !commentDraft.trim()) return;
+    const newComment = {
+      id: `${selectedHomeSpot.id}-${Date.now()}`,
+      user: normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante",
+      text: commentDraft.trim(),
+    };
+    setSpotComments((current) => ({
+      ...current,
+      [selectedHomeSpot.id]: [newComment, ...(current[selectedHomeSpot.id] || [])],
+    }));
+    setCommentDraft("");
+  };
 
   const filteredSpots = useMemo(() => {
     return spots
@@ -457,7 +515,7 @@ export default function App() {
         {spots.map((spot) => {
           const s = normalizeSpot(spot);
           return (
-            <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => setSelectedHomeSpot(s)}>
+            <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => openHomeSpotDetail(s)}>
               <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
               <View style={styles.feedMeta}>
                 <Text style={styles.feedLocation}>📍 {s.location}</Text>
@@ -477,51 +535,111 @@ export default function App() {
         })}
       </View>
 
-      {selectedHomeSpot ? (
-        <View style={styles.postOverlay}>
-          <View style={styles.postModal}>
-            <ScrollView
-              style={styles.postModalScroll}
-              contentContainerStyle={styles.postModalContent}
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-            >
-            <View style={styles.postHeaderRow}>
-              <Text style={styles.searchTitle}>{selectedHomeSpot.name}</Text>
-              <TouchableOpacity onPress={() => setSelectedHomeSpot(null)} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.postMeta}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
-            <Text style={styles.postMeta}>Tipo: {selectedHomeSpot.type} · Creador: {selectedHomeSpot.user}</Text>
-            <Text style={styles.postDescription}>{selectedHomeSpot.description}</Text>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
-              {selectedHomeSpot.photos.map((photo, index) => (
-                <Image key={`${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.postPhoto} />
-              ))}
-            </ScrollView>
-
-            <View style={styles.feedFooterActions}>
-              <TouchableOpacity
-                style={styles.feedAction}
-                onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
-              >
-                <Text style={styles.feedActionText}>Abrir mapa</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
-                <Text style={styles.secondaryActionText}>
-                  {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            </ScrollView>
-          </View>
-        </View>
-      ) : null}
     </>
   );
+
+  const renderSpotDetail = () => {
+    if (!selectedHomeSpot) return renderHome();
+
+    const coordinate = getSpotCoordinate(selectedHomeSpot);
+    const comments = spotComments[selectedHomeSpot.id] || [];
+
+    return (
+      <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+        <View style={styles.postHeaderRow}>
+          <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>{selectedHomeSpot.name}</Text>
+          <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab("home"); }} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>←</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
+        <Text style={[styles.postMeta, { color: theme.muted }]}>Tipo: {selectedHomeSpot.type} · Creador: {selectedHomeSpot.user}</Text>
+        <Text style={[styles.postDescription, { color: theme.text }]}>{selectedHomeSpot.description}</Text>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
+          {selectedHomeSpot.photos.map((photo, index) => (
+            <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => setSelectedPhotoIndex(index)}>
+              <Image source={{ uri: photo }} style={styles.postPhoto} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <Text style={[styles.filterTitle, { color: theme.text }]}>Mini mapa</Text>
+        <MapView
+          style={styles.detailMiniMap}
+          initialRegion={{
+            ...coordinate,
+            latitudeDelta: 0.06,
+            longitudeDelta: 0.06,
+          }}
+          scrollEnabled={false}
+          zoomEnabled={false}
+        >
+          <Marker coordinate={coordinate} />
+        </MapView>
+
+        <View style={styles.feedFooterActions}>
+          <TouchableOpacity
+            style={styles.feedAction}
+            onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
+          >
+            <Text style={styles.feedActionText}>Abrir mapa</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
+            <Text style={styles.secondaryActionText}>
+              {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.profileGalleryHeader}>
+          <Text style={[styles.filterTitle, { color: theme.text }]}>Comentarios de visitantes ({comments.length})</Text>
+        </View>
+        <View style={styles.commentComposerRow}>
+          <TextInput
+            value={commentDraft}
+            onChangeText={setCommentDraft}
+            placeholder="Escribe un comentario..."
+            placeholderTextColor={theme.muted}
+            style={[styles.searchInput, themedInputStyle, styles.commentInput]}
+          />
+          <TouchableOpacity style={styles.feedAction} onPress={handleAddComment}>
+            <Text style={styles.feedActionText}>Enviar</Text>
+          </TouchableOpacity>
+        </View>
+
+        {comments.length ? (
+          comments.map((comment) => (
+            <View key={comment.id} style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}> 
+              <Text style={[styles.creatorUsername, { color: theme.text }]}>{comment.user}</Text>
+              <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{comment.text}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Aún no hay comentarios para este spot.</Text>
+        )}
+
+        {selectedPhotoIndex !== null ? (
+          <View style={styles.galleryOverlay}>
+            <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setSelectedPhotoIndex(null)}>
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              contentOffset={{ x: selectedPhotoIndex * screenWidth, y: 0 }}
+              showsHorizontalScrollIndicator={false}
+            >
+              {selectedHomeSpot.photos.map((photo, index) => (
+                <Image key={`gallery-${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.galleryImage} />
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
 
   const renderSearch = () => (
     <>
@@ -1016,6 +1134,7 @@ export default function App() {
         {activeTab === "agregar" && renderAddSpot()}
         {activeTab === "perfil" && renderProfile()}
         {activeTab === "config" && renderSettings()}
+        {activeTab === "detalle" && renderSpotDetail()}
       </ScrollView>
 
       <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
@@ -1205,6 +1324,49 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 12,
     marginRight: 10,
+  },
+
+  detailMiniMap: {
+    width: "100%",
+    height: 170,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  commentComposerRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  commentInput: {
+    flex: 1,
+  },
+  galleryOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(15,17,21,0.92)",
+    justifyContent: "center",
+    zIndex: 40,
+  },
+  galleryCloseButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 41,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#fff1f1",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  galleryImage: {
+    width: screenWidth,
+    height: 360,
+    resizeMode: "contain",
   },
 
   searchCard: {
