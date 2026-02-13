@@ -113,6 +113,7 @@ export default function App() {
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [creatorSearchText, setCreatorSearchText] = useState("");
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
+  const [detailSourceTab, setDetailSourceTab] = useState("home");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [spotComments, setSpotComments] = useState({
@@ -247,11 +248,12 @@ export default function App() {
     return provinceCoordinates[spot?.province] || provinceCoordinates[userProvince];
   };
 
-  const openHomeSpotDetail = (spot) => {
+  const openHomeSpotDetail = (spot, sourceTab = activeTab) => {
     const normalized = normalizeSpot(spot);
     setSelectedHomeSpot(normalized);
     setSelectedPhotoIndex(null);
     setCommentDraft("");
+    setDetailSourceTab(sourceTab);
     setActiveTab("detalle");
     registerViewedSpot(normalized);
   };
@@ -515,7 +517,7 @@ export default function App() {
         {spots.map((spot) => {
           const s = normalizeSpot(spot);
           return (
-            <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => openHomeSpotDetail(s)}>
+            <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => openHomeSpotDetail(s, "home")}>
               <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
               <View style={styles.feedMeta}>
                 <Text style={styles.feedLocation}>📍 {s.location}</Text>
@@ -548,7 +550,7 @@ export default function App() {
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
         <View style={styles.postHeaderRow}>
           <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>{selectedHomeSpot.name}</Text>
-          <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab("home"); }} style={styles.closeButton}>
+          <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab(detailSourceTab || "home"); }} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>←</Text>
           </TouchableOpacity>
         </View>
@@ -716,7 +718,7 @@ export default function App() {
       </View>
 
       {filteredSpots.map((spot) => (
-        <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot)}>
+        <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "buscar")}>
           <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
           <View style={styles.resultMeta}>
             <Text style={styles.resultName}>{spot.name}</Text>
@@ -1113,6 +1115,52 @@ export default function App() {
     </View>
   );
 
+
+  const renderFavorites = () => (
+    <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+      <Text style={[styles.searchTitle, { color: theme.text }]}>Favoritos</Text>
+      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>Spots guardados ({savedSpots.length})</Text>
+      {savedSpots.length ? (
+        savedSpots.map((spot) => (
+          <TouchableOpacity
+            key={`fav-${spot.id}`}
+            style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => openHomeSpotDetail(spot, "favoritos")}
+          >
+            <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+            <View style={styles.resultMeta}>
+              <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
+              <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes spots favoritos todavía.</Text>
+      )}
+    </View>
+  );
+
+  const renderNotifications = () => (
+    <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
+      <Text style={[styles.searchTitle, { color: theme.text }]}>Centro de notificaciones</Text>
+      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>Última actividad reciente</Text>
+      {viewedSpots.length ? (
+        viewedSpots.slice(0, 10).map((spot) => (
+          <TouchableOpacity
+            key={`notif-${spot.id}-${spot.dateLabel}`}
+            style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}
+            onPress={() => openHomeSpotDetail(spot, "notificaciones")}
+          >
+            <Text style={[styles.activityMessage, { color: theme.text }]}>Visitaste: {spot.name}</Text>
+            <Text style={[styles.activityDate, { color: theme.muted }]}>{spot.dateLabel}</Text>
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes notificaciones por ahora.</Text>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { backgroundColor: theme.header }]}>
@@ -1122,8 +1170,12 @@ export default function App() {
             <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
           </View>
           <View style={styles.headerActions}>
-            <Ionicons name="heart-outline" size={24} style={styles.headerIcon} />
-            <Ionicons name="mail-outline" size={24} style={styles.headerIcon} />
+            <TouchableOpacity onPress={() => setActiveTab("favoritos")}>
+              <Ionicons name="heart-outline" size={24} style={styles.headerIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setActiveTab("notificaciones")}>
+              <Ionicons name="notifications-outline" size={24} style={styles.headerIcon} />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -1134,6 +1186,8 @@ export default function App() {
         {activeTab === "agregar" && renderAddSpot()}
         {activeTab === "perfil" && renderProfile()}
         {activeTab === "config" && renderSettings()}
+        {activeTab === "favoritos" && renderFavorites()}
+        {activeTab === "notificaciones" && renderNotifications()}
         {activeTab === "detalle" && renderSpotDetail()}
       </ScrollView>
 
