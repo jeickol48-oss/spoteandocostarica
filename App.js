@@ -114,6 +114,8 @@ export default function App() {
   const [creatorSearchText, setCreatorSearchText] = useState("");
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
   const [detailSourceTab, setDetailSourceTab] = useState("home");
+  const [selectedCreator, setSelectedCreator] = useState(null);
+  const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [commentDraft, setCommentDraft] = useState("");
   const [spotComments, setSpotComments] = useState({
@@ -256,6 +258,12 @@ export default function App() {
     setDetailSourceTab(sourceTab);
     setActiveTab("detalle");
     registerViewedSpot(normalized);
+  };
+
+  const openCreatorDetail = (creator) => {
+    setSelectedCreator(creator);
+    setCreatorSpotSort("popular");
+    setActiveTab("creador");
   };
 
   const handleAddComment = () => {
@@ -762,7 +770,7 @@ export default function App() {
         style={[styles.searchInput, themedInputStyle]}
       />
       {filteredCreators.map((creator) => (
-        <View key={creator.username} style={styles.creatorCard}>
+        <TouchableOpacity key={creator.username} style={styles.creatorCard} onPress={() => openCreatorDetail(creator)}>
           <Image
             source={{ uri: creator.avatarUrl || fallbackImageUrl }}
             style={styles.creatorAvatar}
@@ -771,10 +779,95 @@ export default function App() {
             <Text style={styles.creatorName}>{creator.fullName}</Text>
             <Text style={styles.creatorUsername}>{creator.username}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </>
   );
+
+
+  const renderCreatorDetail = () => {
+    if (!selectedCreator) return renderSearch();
+
+    const creatorSpots = spots
+      .map(normalizeSpot)
+      .filter((spot) => spot.user === selectedCreator.username);
+
+    const sortedCreatorSpots = [...creatorSpots].sort((a, b) => {
+      if (creatorSpotSort === "alfabetico") {
+        return a.name.localeCompare(b.name, "es");
+      }
+      if (creatorSpotSort === "reciente") {
+        return Number(b.id) - Number(a.id);
+      }
+      const popularityA = (spotComments[a.id]?.length || 0) + (savedSpotIds.includes(a.id) ? 1 : 0) + (viewedSpots.some((v) => v.id === a.id) ? 1 : 0);
+      const popularityB = (spotComments[b.id]?.length || 0) + (savedSpotIds.includes(b.id) ? 1 : 0) + (viewedSpots.some((v) => v.id === b.id) ? 1 : 0);
+      return popularityB - popularityA;
+    });
+
+    return (
+      <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.postHeaderRow}>
+          <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>Perfil del creador</Text>
+          <TouchableOpacity onPress={() => setActiveTab("buscar")} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>←</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.creatorCard, { backgroundColor: theme.input, borderColor: theme.border, marginTop: 8 }]}> 
+          <Image source={{ uri: selectedCreator.avatarUrl || fallbackImageUrl }} style={styles.creatorAvatar} />
+          <View style={styles.creatorMeta}>
+            <Text style={[styles.creatorName, { color: theme.text }]}>{selectedCreator.fullName}</Text>
+            <Text style={[styles.creatorUsername, { color: theme.muted }]}>{selectedCreator.username}</Text>
+            <Text style={[styles.profileSubtitle, { color: theme.muted, marginTop: 6 }]}>{selectedCreator.bio || "Sin biografía por ahora."}</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Spots compartidos</Text>
+          <Text style={[styles.sectionCount, { color: theme.muted }]}>{creatorSpots.length}</Text>
+        </View>
+
+        <View style={styles.filterBlock}>
+          <Text style={[styles.filterTitle, { color: theme.text }]}>Ordenar por</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {[
+              { key: "popular", label: "Más popular" },
+              { key: "reciente", label: "Más reciente" },
+              { key: "alfabetico", label: "A-Z" },
+            ].map((option) => (
+              <TouchableOpacity
+                key={option.key}
+                style={[styles.filterChip, creatorSpotSort === option.key && styles.filterChipActive]}
+                onPress={() => setCreatorSpotSort(option.key)}
+              >
+                <Text style={[styles.filterChipText, creatorSpotSort === option.key && styles.filterChipTextActive]}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {sortedCreatorSpots.length ? (
+          sortedCreatorSpots.map((spot) => (
+            <TouchableOpacity
+              key={`creator-${spot.id}`}
+              style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => openHomeSpotDetail(spot, "creador")}
+            >
+              <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+              <View style={styles.resultMeta}>
+                <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
+                <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Este creador aún no tiene spots publicados.</Text>
+        )}
+      </View>
+    );
+  };
 
   const renderPlaceholder = (title) => (
     <View style={styles.placeholderCard}>
@@ -1188,6 +1281,7 @@ export default function App() {
         {activeTab === "config" && renderSettings()}
         {activeTab === "favoritos" && renderFavorites()}
         {activeTab === "notificaciones" && renderNotifications()}
+        {activeTab === "creador" && renderCreatorDetail()}
         {activeTab === "detalle" && renderSpotDetail()}
       </ScrollView>
 
