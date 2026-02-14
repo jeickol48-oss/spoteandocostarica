@@ -721,8 +721,8 @@ export default function App() {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Resultados</Text>
-        <Text style={styles.sectionCount}>{filteredSpots.length} encontrados</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Resultados</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredSpots.length} encontrados</Text>
       </View>
 
       {filteredSpots.map((spot) => (
@@ -746,8 +746,8 @@ export default function App() {
       ))}
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Cerca de ti</Text>
-        <Text style={styles.sectionCount}>{userProvince}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Cerca de ti</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{userProvince}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {nearbyRecommendations.map((spot) => (
@@ -759,8 +759,8 @@ export default function App() {
       </ScrollView>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Buscar creadores</Text>
-        <Text style={styles.sectionCount}>{filteredCreators.length}</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Buscar creadores</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredCreators.length}</Text>
       </View>
       <TextInput
         value={creatorSearchText}
