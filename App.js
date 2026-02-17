@@ -119,6 +119,8 @@ export default function App() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [gallerySourceTab, setGallerySourceTab] = useState("detalle");
   const [commentDraft, setCommentDraft] = useState("");
   const [spotComments, setSpotComments] = useState({
     "1": [
@@ -257,6 +259,7 @@ export default function App() {
     const normalized = normalizeSpot(spot);
     setSelectedHomeSpot(normalized);
     setSelectedPhotoIndex(null);
+    setGalleryImages([]);
     setCommentDraft("");
     setDetailSourceTab(sourceTab);
     setActiveTab("detalle");
@@ -267,6 +270,14 @@ export default function App() {
     setSelectedCreator(creator);
     setCreatorSpotSort("popular");
     setActiveTab("creador");
+  };
+
+  const openGallery = (images, index = 0, sourceTab = "detalle") => {
+    if (!images?.length) return;
+    setGalleryImages(images);
+    setSelectedPhotoIndex(index);
+    setGallerySourceTab(sourceTab);
+    setActiveTab("galeria");
   };
 
   const handleProfileQuickActions = () => {
@@ -643,7 +654,7 @@ export default function App() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
           {selectedHomeSpot.photos.map((photo, index) => (
-            <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => { setSelectedPhotoIndex(index); setActiveTab("galeria"); }}>
+            <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => openGallery(selectedHomeSpot.photos, index, "detalle")}>
               <Image source={{ uri: photo }} style={styles.postPhoto} />
             </TouchableOpacity>
           ))}
@@ -713,15 +724,17 @@ export default function App() {
 
 
   const renderSpotGallery = () => {
-    if (!selectedHomeSpot || selectedPhotoIndex === null) return renderSpotDetail();
+    const images = galleryImages.length ? galleryImages : selectedHomeSpot?.photos || [];
+    if (!images.length || selectedPhotoIndex === null) return renderSpotDetail();
 
     return (
       <View style={styles.galleryScreen}>
         <TouchableOpacity
           style={styles.galleryCloseButton}
           onPress={() => {
-            setActiveTab("detalle");
+            setActiveTab(gallerySourceTab || "detalle");
             setSelectedPhotoIndex(null);
+            setGalleryImages([]);
           }}
         >
           <Text style={styles.closeButtonText}>✕</Text>
@@ -733,8 +746,8 @@ export default function App() {
           showsHorizontalScrollIndicator={false}
           style={styles.galleryPager}
         >
-          {selectedHomeSpot.photos.map((photo, index) => (
-            <Image key={`gallery-${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.galleryImage} />
+          {images.map((photo, index) => (
+            <Image key={`gallery-${index}-${photo}`} source={{ uri: photo }} style={styles.galleryImage} />
           ))}
         </ScrollView>
       </View>
@@ -1178,8 +1191,10 @@ export default function App() {
         </View>
         {profile.photos.length ? (
           <View style={styles.profilePhotosGrid}>
-            {profile.photos.map((uri) => (
-              <Image key={uri} source={{ uri }} style={styles.profileGalleryImage} />
+            {profile.photos.map((uri, index) => (
+              <TouchableOpacity key={uri} onPress={() => openGallery(profile.photos, index, "perfil")}>
+                <Image source={{ uri }} style={styles.profileGalleryImage} />
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
@@ -1191,7 +1206,7 @@ export default function App() {
         </View>
         {mySpots.length ? (
           mySpots.map((spot) => (
-            <View key={`my-${spot.id}`} style={styles.resultCard}>
+            <TouchableOpacity key={`my-${spot.id}`} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "perfil")}>
               <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
               <View style={styles.resultMeta}>
                 <Text style={styles.resultName}>{spot.name}</Text>
@@ -1203,7 +1218,7 @@ export default function App() {
                   <Text style={styles.feedActionText}>Abrir mapa</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         ) : (
           <Text style={styles.profileSubtitle}>Todavía no has agregado spots.</Text>
