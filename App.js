@@ -3,7 +3,9 @@ import {
   Alert,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -1347,7 +1349,12 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
+    >
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { backgroundColor: theme.header }]}>
         <View style={styles.headerRow}>
           <View>
@@ -1365,7 +1372,12 @@ export default function App() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
         {activeTab === "home" && renderHome()}
         {activeTab === "buscar" && renderSearch()}
         {activeTab === "agregar" && renderAddSpot()}
@@ -1403,6 +1415,7 @@ export default function App() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
