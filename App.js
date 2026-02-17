@@ -134,7 +134,7 @@ export default function App() {
     description: "",
     province: "San José",
     type: "Playa",
-    imageUrl: "",
+    spotPhotos: [],
     locationLabel: "",
   });
 
@@ -443,10 +443,16 @@ export default function App() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: 10,
     });
 
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setNewSpot((current) => ({ ...current, imageUrl: result.assets[0].uri }));
+    if (!result.canceled && result.assets?.length) {
+      const selectedUris = result.assets.map((asset) => asset.uri).filter(Boolean);
+      setNewSpot((current) => {
+        const merged = [...current.spotPhotos, ...selectedUris].slice(0, 10);
+        return { ...current, spotPhotos: merged };
+      });
     }
   };
 
@@ -545,9 +551,9 @@ export default function App() {
       type: newSpot.type,
       user: normalizeUsername(savedProfile?.username || profileForm.username) || "@TuUsuario",
       mapUrl,
-      imageUrl: newSpot.imageUrl.trim() || fallbackImageUrl,
+      imageUrl: newSpot.spotPhotos[0] || fallbackImageUrl,
       description: newSpot.description.trim(),
-      photos: [newSpot.imageUrl.trim() || fallbackImageUrl],
+      photos: newSpot.spotPhotos.length ? newSpot.spotPhotos : [fallbackImageUrl],
     };
 
     setSpots((current) => [createdSpot, ...current]);
@@ -556,7 +562,7 @@ export default function App() {
       description: "",
       province: "San José",
       type: "Playa",
-      imageUrl: "",
+      spotPhotos: [],
       locationLabel: "",
     });
     setActiveTab("home");
@@ -1057,9 +1063,15 @@ export default function App() {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
-        <Text style={styles.uploadButtonText}>Cargar imagen del spot</Text>
+        <Text style={styles.uploadButtonText}>Cargar fotos del spot (máximo 10)</Text>
       </TouchableOpacity>
-      {newSpot.imageUrl ? <Image source={{ uri: newSpot.imageUrl }} style={styles.previewImage} /> : null}
+      {newSpot.spotPhotos.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoPreviewRow}>
+          {newSpot.spotPhotos.map((uri) => (
+            <Image key={uri} source={{ uri }} style={styles.previewThumb} />
+          ))}
+        </ScrollView>
+      ) : null}
 
       <TouchableOpacity style={[styles.feedAction, styles.submitButton]} onPress={handleCreateSpot}>
         <Text style={styles.feedActionText}>Guardar spot</Text>
@@ -1722,11 +1734,14 @@ const styles = StyleSheet.create({
     color: "#7a1c1c",
     fontWeight: "700",
   },
-  previewImage: {
-    width: "100%",
-    height: 170,
+  photoPreviewRow: {
     marginTop: 10,
-    borderRadius: 14,
+  },
+  previewThumb: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginRight: 8,
   },
   profileEditorCard: {
     backgroundColor: "#ffffff",
