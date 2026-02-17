@@ -266,6 +266,15 @@ export default function App() {
     setActiveTab("creador");
   };
 
+  const handleProfileQuickActions = () => {
+    Alert.alert("Acciones rápidas", "¿Qué quieres abrir?", [
+      { text: "Mi perfil", onPress: () => setActiveTab("perfil") },
+      { text: "Notificaciones", onPress: () => setActiveTab("notificaciones") },
+      { text: "Configuración", onPress: () => setActiveTab("config") },
+      { text: "Cancelar", style: "cancel" },
+    ]);
+  };
+
   const handleAddComment = () => {
     if (!selectedHomeSpot || !commentDraft.trim()) return;
     const newComment = {
@@ -503,16 +512,20 @@ export default function App() {
   const renderHome = () => (
     <>
       <View style={styles.profileRow}>
-        <View style={styles.profileLeft}>
+        <TouchableOpacity style={styles.profileLeft} onPress={() => setActiveTab("perfil")}>
           <Image source={{ uri: fallbackImageUrl }} style={styles.profileAvatar} />
           <View>
             <Text style={styles.profileHandle}>@CR_Adventures</Text>
             <Text style={styles.profileSubtitle}>Explorando Costa Rica</Text>
           </View>
-        </View>
+        </TouchableOpacity>
         <View style={styles.profileActions}>
-          <Ionicons name="notifications-outline" size={22} style={styles.profileActionIcon} />
-          <Ionicons name="ellipsis-horizontal" size={22} style={styles.profileActionIcon} />
+          <TouchableOpacity onPress={() => setActiveTab("notificaciones")}>
+            <Ionicons name="notifications-outline" size={22} style={styles.profileActionIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleProfileQuickActions}>
+            <Ionicons name="ellipsis-horizontal" size={22} style={styles.profileActionIcon} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -1348,7 +1361,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f0dada",
   },
-  profileLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  profileLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
   profileAvatar: {
     width: 42,
     height: 42,
