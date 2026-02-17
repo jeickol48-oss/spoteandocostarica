@@ -20,7 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
 
-const userProvince = "San José";
+const defaultUserProvince = "San José";
 const { width: screenWidth } = Dimensions.get("window");
 
 const provinceCoordinates = {
@@ -142,6 +142,7 @@ export default function App() {
     latitude: 9.9281,
     longitude: -84.0907,
   });
+  const [nearbyProvince, setNearbyProvince] = useState(defaultUserProvince);
 
   const [profileForm, setProfileForm] = useState({
     fullName: "",
@@ -247,7 +248,7 @@ export default function App() {
         longitude: Number(match[2]),
       };
     }
-    return provinceCoordinates[spot?.province] || provinceCoordinates[userProvince];
+    return provinceCoordinates[spot?.province] || provinceCoordinates[defaultUserProvince];
   };
 
   const openHomeSpotDetail = (spot, sourceTab = activeTab) => {
@@ -299,12 +300,12 @@ export default function App() {
       )
       .filter((spot) => (provinceFilter === "Todas" ? true : spot.province === provinceFilter))
       .filter((spot) => (typeFilter === "Todos" ? true : spot.type === typeFilter))
-      .filter((spot) => (nearbyOnly ? spot.province === userProvince : true));
-  }, [nearbyOnly, provinceFilter, searchText, spots, typeFilter]);
+      .filter((spot) => (nearbyOnly ? spot.province === nearbyProvince : true));
+  }, [nearbyOnly, nearbyProvince, provinceFilter, searchText, spots, typeFilter]);
 
   const nearbyRecommendations = useMemo(
-    () => spots.map(normalizeSpot).filter((spot) => spot.province === userProvince),
-    [spots]
+    () => spots.map(normalizeSpot).filter((spot) => spot.province === nearbyProvince),
+    [nearbyProvince, spots]
   );
 
   const creators = useMemo(() => {
@@ -363,6 +364,58 @@ export default function App() {
     }),
     [selectedLocation]
   );
+
+  const handleNearbyToggle = async () => {
+    if (nearbyOnly) {
+      setNearbyOnly(false);
+      return;
+    }
+
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert("Permiso requerido", "Activa ubicación para mostrar spots realmente cerca de ti.");
+      return;
+    }
+
+    const current = await Location.getCurrentPositionAsync({});
+    if (!current?.coords) return;
+
+    const currentCoords = {
+      latitude: current.coords.latitude,
+      longitude: current.coords.longitude,
+    };
+    setSelectedLocation(currentCoords);
+
+    try {
+      const geocode = await Location.reverseGeocodeAsync(currentCoords);
+      const geo = geocode?.[0];
+      const label = geo?.region || geo?.subregion || geo?.city || "";
+      if (label) {
+        const normalizeText = (value) =>
+          value
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "")
+            .trim();
+        const normalizedLabel = normalizeText(label);
+        const provincesOnly = provinces.filter((province) => province !== "Todas");
+        const matchedProvince = provincesOnly.find((province) => {
+          const normalizedProvince = normalizeText(province);
+          return (
+            normalizedLabel.includes(normalizedProvince) ||
+            normalizedProvince.includes(normalizedLabel)
+          );
+        });
+        if (matchedProvince) {
+          setNearbyProvince(matchedProvince);
+        }
+      }
+    } catch (_error) {
+      // Mantiene provincia previa si no se pudo geocodificar.
+    }
+
+    setNearbyOnly(true);
+  };
 
   const useCurrentLocation = async () => {
     const permission = await Location.requestForegroundPermissionsAsync();
@@ -725,10 +778,10 @@ export default function App() {
 
         <TouchableOpacity
           style={[styles.nearbyButton, nearbyOnly && styles.nearbyButtonActive]}
-          onPress={() => setNearbyOnly((current) => !current)}
+          onPress={handleNearbyToggle}
         >
           <Text style={[styles.nearbyText, nearbyOnly && styles.nearbyTextActive]}>
-            Recomendados cerca de ti ({userProvince})
+            Recomendaciones cerca de ti
           </Text>
         </TouchableOpacity>
       </View>
@@ -760,7 +813,7 @@ export default function App() {
 
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Cerca de ti</Text>
-        <Text style={[styles.sectionCount, { color: theme.muted }]}>{userProvince}</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{nearbyProvince}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {nearbyRecommendations.map((spot) => (
