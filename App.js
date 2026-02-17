@@ -693,16 +693,18 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {comments.length ? (
-          comments.map((comment) => (
-            <View key={comment.id} style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}> 
-              <Text style={[styles.creatorUsername, { color: theme.text }]}>{comment.user}</Text>
-              <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{comment.text}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Aún no hay comentarios para este spot.</Text>
-        )}
+        <View style={styles.commentsList}>
+          {comments.length ? (
+            comments.map((comment) => (
+              <View key={comment.id} style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}> 
+                <Text style={[styles.creatorUsername, { color: theme.text }]}>{comment.user}</Text>
+                <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{comment.text}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Aún no hay comentarios para este spot.</Text>
+          )}
+        </View>
 
 
       </View>
@@ -1594,6 +1596,9 @@ const styles = StyleSheet.create({
   },
   commentInput: {
     flex: 1,
+  },
+  commentsList: {
+    marginTop: 8,
   },
   galleryScreen: {
     backgroundColor: "#0b0f15",
