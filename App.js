@@ -635,7 +635,7 @@ export default function App() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
           {selectedHomeSpot.photos.map((photo, index) => (
-            <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => setSelectedPhotoIndex(index)}>
+            <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => { setSelectedPhotoIndex(index); setActiveTab("galeria"); }}>
               <Image source={{ uri: photo }} style={styles.postPhoto} />
             </TouchableOpacity>
           ))}
@@ -696,23 +696,37 @@ export default function App() {
           <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Aún no hay comentarios para este spot.</Text>
         )}
 
-        {selectedPhotoIndex !== null ? (
-          <View style={styles.galleryOverlay}>
-            <TouchableOpacity style={styles.galleryCloseButton} onPress={() => setSelectedPhotoIndex(null)}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-            <ScrollView
-              horizontal
-              pagingEnabled
-              contentOffset={{ x: selectedPhotoIndex * screenWidth, y: 0 }}
-              showsHorizontalScrollIndicator={false}
-            >
-              {selectedHomeSpot.photos.map((photo, index) => (
-                <Image key={`gallery-${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.galleryImage} />
-              ))}
-            </ScrollView>
-          </View>
-        ) : null}
+
+      </View>
+    );
+  };
+
+
+  const renderSpotGallery = () => {
+    if (!selectedHomeSpot || selectedPhotoIndex === null) return renderSpotDetail();
+
+    return (
+      <View style={styles.galleryScreen}>
+        <TouchableOpacity
+          style={styles.galleryCloseButton}
+          onPress={() => {
+            setActiveTab("detalle");
+            setSelectedPhotoIndex(null);
+          }}
+        >
+          <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          contentOffset={{ x: selectedPhotoIndex * screenWidth, y: 0 }}
+          showsHorizontalScrollIndicator={false}
+          style={styles.galleryPager}
+        >
+          {selectedHomeSpot.photos.map((photo, index) => (
+            <Image key={`gallery-${selectedHomeSpot.id}-${index}`} source={{ uri: photo }} style={styles.galleryImage} />
+          ))}
+        </ScrollView>
       </View>
     );
   };
@@ -1349,6 +1363,7 @@ export default function App() {
         {activeTab === "notificaciones" && renderNotifications()}
         {activeTab === "creador" && renderCreatorDetail()}
         {activeTab === "detalle" && renderSpotDetail()}
+        {activeTab === "galeria" && renderSpotGallery()}
       </ScrollView>
 
       <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
@@ -1508,7 +1523,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: "#fff1f1",
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -1555,15 +1570,15 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
   },
-  galleryOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(15,17,21,0.92)",
-    justifyContent: "center",
-    zIndex: 40,
+  galleryScreen: {
+    backgroundColor: "#0b0f15",
+    minHeight: "100%",
+    marginHorizontal: -20,
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  galleryPager: {
+    marginTop: 48,
   },
   galleryCloseButton: {
     position: "absolute",
@@ -1573,13 +1588,13 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "#fff1f1",
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
   galleryImage: {
     width: screenWidth,
-    height: 360,
+    height: screenWidth * 1.25,
     resizeMode: "contain",
   },
 
