@@ -1192,7 +1192,15 @@ export default function App() {
         {profile.photos.length ? (
           <View style={styles.profilePhotosGrid}>
             {profile.photos.map((uri, index) => (
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-0zy130
+              <TouchableOpacity
+                key={`${uri}-${index}`}
+                style={styles.profilePhotoPressable}
+                onPress={() => openGallery(profile.photos, index, "perfil")}
+              >
+=======
               <TouchableOpacity key={uri} onPress={() => openGallery(profile.photos, index, "perfil")}>
+>>>>>>> main
                 <Image source={{ uri }} style={styles.profileGalleryImage} />
               </TouchableOpacity>
             ))}
@@ -1906,11 +1914,22 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-0zy130
+  profilePhotoPressable: {
+    width: "31%",
+    marginBottom: 8,
+  },
+  profileGalleryImage: {
+    width: "100%",
+    height: 90,
+    borderRadius: 10,
+=======
   profileGalleryImage: {
     width: "31%",
     height: 90,
     borderRadius: 10,
     marginBottom: 8,
+>>>>>>> main
   },
   submitButton: {
     marginTop: 14,
