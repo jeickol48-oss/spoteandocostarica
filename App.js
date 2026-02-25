@@ -1167,6 +1167,7 @@ export default function App() {
     const mySpots = spots
       .map(normalizeSpot)
       .filter((spot) => spot.user === profile.username);
+    const safeProfilePhotos = Array.isArray(profile.photos) ? profile.photos : [];
 
     return (
       <View style={styles.profileEditorCard}>
@@ -1187,24 +1188,17 @@ export default function App() {
         </View>
 
         <View style={styles.profileGalleryHeader}>
-          <Text style={styles.filterTitle}>Fotos del perfil ({profile.photos.length})</Text>
+          <Text style={styles.filterTitle}>Fotos del perfil ({safeProfilePhotos.length})</Text>
         </View>
-        {profile.photos.length ? (
+        {safeProfilePhotos.length ? (
           <View style={styles.profilePhotosGrid}>
-            {profile.photos.map((uri, index) => (
+            {safeProfilePhotos.map((uri, index) => (
               <TouchableOpacity
                 key={`profile-photo-${index}`}
                 style={styles.profilePhotoPressable}
-                onPress={() => openGallery(profile.photos, index, "perfil")}
+                onPress={() => openGallery(safeProfilePhotos, index, "perfil")}
               >
                 <Image source={{ uri: uri || fallbackImageUrl }} style={styles.profileGalleryImage} />
-              <TouchableOpacity
-                key={`${uri}-${index}`}
-                style={styles.profilePhotoPressable}
-                onPress={() => openGallery(profile.photos, index, "perfil")}
-              >
-                <Image source={{ uri }} style={styles.profileGalleryImage} />
-
               </TouchableOpacity>
             ))}
           </View>
@@ -1925,7 +1919,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 90,
     borderRadius: 10,
-
   },
   submitButton: {
     marginTop: 14,
