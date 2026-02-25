@@ -1198,6 +1198,13 @@ export default function App() {
                 onPress={() => openGallery(profile.photos, index, "perfil")}
               >
                 <Image source={{ uri: uri || fallbackImageUrl }} style={styles.profileGalleryImage} />
+              <TouchableOpacity
+                key={`${uri}-${index}`}
+                style={styles.profilePhotoPressable}
+                onPress={() => openGallery(profile.photos, index, "perfil")}
+              >
+                <Image source={{ uri }} style={styles.profileGalleryImage} />
+
               </TouchableOpacity>
             ))}
           </View>
@@ -1918,6 +1925,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 90,
     borderRadius: 10,
+
   },
   submitButton: {
     marginTop: 14,
