@@ -21,9 +21,22 @@ npm install
 npm run start
 ```
 
+## Firebase (almacenamiento de estado)
+Configura estas variables de entorno para habilitar Firestore en Expo:
+
+```bash
+EXPO_PUBLIC_FIREBASE_API_KEY=...
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+EXPO_PUBLIC_FIREBASE_APP_ID=...
+```
+
+El estado principal de la app (spots, perfil guardado, favoritos, comentarios y ajustes) se sincroniza en el documento `appState/main` de Firestore.
+
 ## Próximos pasos sugeridos
-- Integrar almacenamiento (Firebase, Supabase o un backend propio).
-- Subida de imágenes (storage y CDN).
+- Subida de imágenes (Firebase Storage/CDN).
 - Autenticación social.
 - Moderación y reportes de contenido.
 - Búsqueda por filtros y mapas.

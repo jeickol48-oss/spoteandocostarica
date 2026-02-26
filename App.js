@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -18,6 +18,8 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { db, hasFirebaseConfig } from "./firebaseConfig";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -166,6 +168,8 @@ export default function App() {
     darkMode: false,
   });
 
+  const [isRemoteReady, setIsRemoteReady] = useState(false);
+
   const normalizeUsername = (value) => {
     const clean = value.trim().replace(/^@+/, "");
     return clean ? `@${clean}` : "";
@@ -243,6 +247,93 @@ export default function App() {
     type: spot.type || "Spot",
     user: spot.user || "@CR_Adventures",
   });
+
+  useEffect(() => {
+    if (!hasFirebaseConfig || !db) {
+      setIsRemoteReady(true);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadRemoteState = async () => {
+      try {
+        const appStateRef = doc(db, "appState", "main");
+        const snapshot = await getDoc(appStateRef);
+        if (!snapshot.exists() || !isMounted) return;
+
+        const remote = snapshot.data();
+        if (Array.isArray(remote.spots)) {
+          setSpots(remote.spots.map(normalizeSpot));
+        }
+        if (remote.savedProfile) {
+          setSavedProfile(remote.savedProfile);
+        }
+        if (Array.isArray(remote.savedSpotIds)) {
+          setSavedSpotIds(remote.savedSpotIds);
+        }
+        if (Array.isArray(remote.viewedSpots)) {
+          setViewedSpots(remote.viewedSpots);
+        }
+        if (remote.settings) {
+          setSettings((current) => ({ ...current, ...remote.settings }));
+        }
+        if (remote.spotComments) {
+          setSpotComments(remote.spotComments);
+        }
+        if (typeof remote.nearbyProvince === "string" && remote.nearbyProvince.trim()) {
+          setNearbyProvince(remote.nearbyProvince);
+        }
+      } catch (error) {
+        console.warn("No se pudo cargar el estado desde Firebase:", error?.message || error);
+      } finally {
+        if (isMounted) setIsRemoteReady(true);
+      }
+    };
+
+    loadRemoteState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isRemoteReady || !hasFirebaseConfig || !db) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const appStateRef = doc(db, "appState", "main");
+        await setDoc(
+          appStateRef,
+          {
+            spots,
+            savedProfile,
+            savedSpotIds,
+            viewedSpots,
+            settings,
+            spotComments,
+            nearbyProvince,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      } catch (error) {
+        console.warn("No se pudo guardar el estado en Firebase:", error?.message || error);
+      }
+    }, 700);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    isRemoteReady,
+    nearbyProvince,
+    savedProfile,
+    savedSpotIds,
+    settings,
+    spotComments,
+    spots,
+    viewedSpots,
+  ]);
 
   const getSpotCoordinate = (spot) => {
     const match = spot?.mapUrl?.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
