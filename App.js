@@ -18,8 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { db, hasFirebaseConfig } from "./firebaseConfig";
+import { hasFirebaseConfig, loadRemoteState, saveRemoteState } from "./firebaseConfig";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -249,20 +248,18 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (!hasFirebaseConfig || !db) {
-      setIsRemoteReady(true);
-      return;
-    }
-
     let isMounted = true;
 
-    const loadRemoteState = async () => {
-      try {
-        const appStateRef = doc(db, "appState", "main");
-        const snapshot = await getDoc(appStateRef);
-        if (!snapshot.exists() || !isMounted) return;
+    const hydrateFromRemote = async () => {
+      if (!hasFirebaseConfig) {
+        if (isMounted) setIsRemoteReady(true);
+        return;
+      }
 
-        const remote = snapshot.data();
+      try {
+        const remote = await loadRemoteState();
+        if (!remote || !isMounted) return;
+
         if (Array.isArray(remote.spots)) {
           setSpots(remote.spots.map(normalizeSpot));
         }
@@ -285,13 +282,13 @@ export default function App() {
           setNearbyProvince(remote.nearbyProvince);
         }
       } catch (error) {
-        console.warn("No se pudo cargar el estado desde Firebase:", error?.message || error);
+        console.warn("No se pudo cargar el estado remoto:", error?.message || error);
       } finally {
         if (isMounted) setIsRemoteReady(true);
       }
     };
 
-    loadRemoteState();
+    hydrateFromRemote();
 
     return () => {
       isMounted = false;
@@ -299,27 +296,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!isRemoteReady || !hasFirebaseConfig || !db) return;
+    if (!isRemoteReady || !hasFirebaseConfig) return;
 
     const timeoutId = setTimeout(async () => {
       try {
-        const appStateRef = doc(db, "appState", "main");
-        await setDoc(
-          appStateRef,
-          {
-            spots,
-            savedProfile,
-            savedSpotIds,
-            viewedSpots,
-            settings,
-            spotComments,
-            nearbyProvince,
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        );
+        await saveRemoteState({
+          spots,
+          savedProfile,
+          savedSpotIds,
+          viewedSpots,
+          settings,
+          spotComments,
+          nearbyProvince,
+        });
       } catch (error) {
-        console.warn("No se pudo guardar el estado en Firebase:", error?.message || error);
+        console.warn("No se pudo guardar el estado remoto:", error?.message || error);
       }
     }, 700);
 
