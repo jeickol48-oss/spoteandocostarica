@@ -114,7 +114,7 @@ const spotTypes = ["Todos", "Playa", "Montaña", "Catarata", "Urbano", "Sendero"
 
 
 const spotFeatureOptions = [
-  { key: "solo4x4", label: "Solo 4x4", icon: "car-sport-outline" },
+  { key: "solo4x4", label: "Solo 4x4", icon: "car-sport" },
   { key: "entraAuto", label: "Entra automóvil", icon: "car-outline" },
   { key: "caminata", label: "Ruta caminata", icon: "walk-outline" },
   { key: "petFriendly", label: "Pet friendly", icon: "paw-outline" },
@@ -229,7 +229,16 @@ export default function App() {
   const getSpotFeatures = (spot) =>
     Array.isArray(spot?.features) ? spot.features.filter((feature) => featureMetaByKey[feature]) : [];
 
+  const getFeatureIconSize = (featureKey, context = "default") => {
+    const is4x4 = featureKey === "solo4x4";
+    if (context === "overlay") return is4x4 ? 12 : 10;
+    if (context === "chip") return is4x4 ? 16 : 13;
+    if (context === "badge") return is4x4 ? 13 : 12;
+    return is4x4 ? 14 : 12;
+  };
+
   const toggleFeatureForNewSpot = (featureKey) => {
+
     setNewSpot((current) => {
       const exists = current.features.includes(featureKey);
       return {
@@ -251,7 +260,7 @@ export default function App() {
           const feature = featureMetaByKey[featureKey];
           return (
             <View key={`overlay-${spot.id}-${featureKey}`} style={styles.spotImageFeatureIconBadge}>
-              <Ionicons name={feature.icon} size={10} color="#7a1c1c" />
+              <Ionicons name={feature.icon} size={getFeatureIconSize(featureKey, "overlay")} color="#7a1c1c" />
             </View>
           );
         })}
@@ -919,7 +928,7 @@ export default function App() {
               const feature = featureMetaByKey[featureKey];
               return (
                 <View key={`${selectedHomeSpot.id}-${featureKey}`} style={styles.spotFeatureBadge}>
-                  <Ionicons name={feature.icon} size={12} color="#7a1c1c" />
+                  <Ionicons name={feature.icon} size={getFeatureIconSize(featureKey, "badge")} color="#7a1c1c" />
                   <Text style={styles.spotFeatureText}>{feature.label}</Text>
                 </View>
               );
@@ -1327,7 +1336,7 @@ export default function App() {
               >
                 <Ionicons
                   name={feature.icon}
-                  size={13}
+                  size={getFeatureIconSize(feature.key, "chip")}
                   color={isSelected ? "#ffffff" : "#7a1c1c"}
                   style={styles.addFeatureIcon}
                 />
@@ -2096,7 +2105,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   spotImageFeatureIconBadge: {
-    width: 18,
+    minWidth: 18,
     height: 18,
     borderRadius: 9,
     backgroundColor: "rgba(255, 250, 250, 0.95)",
