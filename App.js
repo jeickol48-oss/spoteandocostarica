@@ -701,6 +701,12 @@ export default function App() {
     });
   };
 
+  const homeProfile = {
+    username: normalizeUsername(savedProfile?.username || profileForm.username) || "@TuUsuario",
+    subtitle: savedProfile?.fullName?.trim() || "Tu perfil",
+    avatarUrl: savedProfile?.avatarUrl || profileForm.avatarUrl || fallbackImageUrl,
+  };
+
   const handleCreateSpot = () => {
     if (!newSpot.name.trim()) {
       Alert.alert("Falta nombre", "Escribe el nombre del spot.");
@@ -743,10 +749,10 @@ export default function App() {
     <>
       <View style={styles.profileRow}>
         <TouchableOpacity style={styles.profileLeft} onPress={() => setActiveTab("perfil")}>
-          <Image source={{ uri: fallbackImageUrl }} style={styles.profileAvatar} />
+          <Image source={{ uri: homeProfile.avatarUrl }} style={styles.profileAvatar} />
           <View>
-            <Text style={styles.profileHandle}>@CR_Adventures</Text>
-            <Text style={styles.profileSubtitle}>Explorando Costa Rica</Text>
+            <Text style={styles.profileHandle}>{homeProfile.username}</Text>
+            <Text style={styles.profileSubtitle}>{homeProfile.subtitle}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.profileActions}>
@@ -1080,7 +1086,7 @@ export default function App() {
         </View>
 
         <Text style={[styles.creatorName, { color: theme.text, marginTop: 6 }]}>{selectedCreator.fullName}</Text>
-        <Text style={[styles.creatorUsername, { color: theme.muted }]}>{selectedCreator.username}</Text>
+        <Text style={[styles.creatorUsername, styles.profileUsernameSpacing, { color: theme.muted }]}>{selectedCreator.username}</Text>
 
         <View style={styles.instagramProfileTopRow}>
           <Image source={{ uri: selectedCreator.avatarUrl || fallbackImageUrl }} style={styles.profilePreviewAvatar} />
@@ -1368,7 +1374,7 @@ export default function App() {
             <Text style={styles.useLocationButtonText}>Editar</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.creatorUsername}>{profile.username}</Text>
+        <Text style={[styles.creatorUsername, styles.profileUsernameSpacing]}>{profile.username}</Text>
 
         <View style={styles.instagramProfileTopRow}>
           <Image
@@ -1390,6 +1396,8 @@ export default function App() {
             </View>
           </View>
         </View>
+
+        <Text style={[styles.profileSubtitle, styles.profileBioBelowStats]}>{profile.bio}</Text>
 
         <View style={styles.instagramTabRow}>
           <TouchableOpacity
@@ -1426,8 +1434,6 @@ export default function App() {
             {connectionTab === "followers" ? "Aún no tienes seguidores." : "Aún no sigues a nadie."}
           </Text>
         )}
-
-        <Text style={[styles.profileSubtitle, { marginBottom: 8 }]}>{profile.bio}</Text>
 
         <View style={styles.profileGalleryHeader}>
           <Text style={styles.filterTitle}>Fotos del perfil ({safeProfilePhotos.length})</Text>
@@ -2054,6 +2060,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  profileUsernameSpacing: {
+    marginBottom: 8,
+  },
+  profileBioBelowStats: {
+    marginBottom: 10,
   },
   instagramProfileTopRow: {
     flexDirection: "row",
