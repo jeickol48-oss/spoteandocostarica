@@ -1066,7 +1066,9 @@ export default function App() {
     });
 
     const creatorFollowers = getFollowersForUser(selectedCreator.username);
+    const creatorFollowing = getFollowingForUser(selectedCreator.username);
     const isFollowingCreator = creatorFollowers.includes(currentUsername);
+    const isOwnCreatorProfile = selectedCreator.username === currentUsername;
 
     return (
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -1077,21 +1079,39 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.creatorCard, { backgroundColor: theme.input, borderColor: theme.border, marginTop: 8 }]}> 
-          <Image source={{ uri: selectedCreator.avatarUrl || fallbackImageUrl }} style={styles.creatorAvatar} />
-          <View style={styles.creatorMeta}>
-            <Text style={[styles.creatorName, { color: theme.text }]}>{selectedCreator.fullName}</Text>
-            <Text style={[styles.creatorUsername, { color: theme.muted }]}>{selectedCreator.username}</Text>
-            <Text style={[styles.profileSubtitle, { color: theme.muted, marginTop: 6 }]}>{selectedCreator.bio || "Sin biografía por ahora."}</Text>
-            <Text style={[styles.profileSubtitle, { color: theme.muted, marginTop: 6 }]}>Seguidores: {creatorFollowers.length}</Text>
-            <TouchableOpacity
-              style={[styles.secondaryAction, { marginTop: 10, alignSelf: "flex-start" }]}
-              onPress={() => toggleFollowUser(selectedCreator.username)}
-            >
-              <Text style={styles.secondaryActionText}>{isFollowingCreator ? "Siguiendo" : "Seguir"}</Text>
-            </TouchableOpacity>
+        <Text style={[styles.creatorName, { color: theme.text, marginTop: 6 }]}>{selectedCreator.fullName}</Text>
+        <Text style={[styles.creatorUsername, { color: theme.muted }]}>{selectedCreator.username}</Text>
+
+        <View style={styles.instagramProfileTopRow}>
+          <Image source={{ uri: selectedCreator.avatarUrl || fallbackImageUrl }} style={styles.profilePreviewAvatar} />
+          <View style={styles.instagramCountersRow}>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{creatorSpots.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Publicaciones</Text>
+            </View>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{creatorFollowers.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Seguidores</Text>
+            </View>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{creatorFollowing.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Siguiendo</Text>
+            </View>
           </View>
         </View>
+
+        <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 8 }]}>
+          {selectedCreator.bio || "Sin biografía por ahora."}
+        </Text>
+
+        {!isOwnCreatorProfile ? (
+          <TouchableOpacity
+            style={[styles.secondaryAction, { marginBottom: 8, alignSelf: "flex-start" }]}
+            onPress={() => toggleFollowUser(selectedCreator.username)}
+          >
+            <Text style={styles.secondaryActionText}>{isFollowingCreator ? "Siguiendo" : "Seguir"}</Text>
+          </TouchableOpacity>
+        ) : null}
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Spots compartidos</Text>
@@ -1349,7 +1369,6 @@ export default function App() {
           </TouchableOpacity>
         </View>
         <Text style={styles.creatorUsername}>{profile.username}</Text>
-        <Text style={styles.profileSubtitle}>{profile.bio}</Text>
 
         <View style={styles.instagramProfileTopRow}>
           <Image
@@ -1407,6 +1426,8 @@ export default function App() {
             {connectionTab === "followers" ? "Aún no tienes seguidores." : "Aún no sigues a nadie."}
           </Text>
         )}
+
+        <Text style={[styles.profileSubtitle, { marginBottom: 8 }]}>{profile.bio}</Text>
 
         <View style={styles.profileGalleryHeader}>
           <Text style={styles.filterTitle}>Fotos del perfil ({safeProfilePhotos.length})</Text>
