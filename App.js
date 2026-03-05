@@ -241,6 +241,24 @@ export default function App() {
     });
   };
 
+  const renderSpotFeatureIconsOverlay = (spot, maxIcons = 3) => {
+    const featureKeys = getSpotFeatures(spot).slice(0, maxIcons);
+    if (!featureKeys.length) return null;
+
+    return (
+      <View style={styles.spotImageFeatureOverlay}>
+        {featureKeys.map((featureKey) => {
+          const feature = featureMetaByKey[featureKey];
+          return (
+            <View key={`overlay-${spot.id}-${featureKey}`} style={styles.spotImageFeatureIconBadge}>
+              <Ionicons name={feature.icon} size={10} color="#7a1c1c" />
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
 
   const currentUsername = useMemo(
     () => normalizeUsername(savedProfile?.username || profileForm.username) || "@tu_usuario",
@@ -815,7 +833,10 @@ export default function App() {
           const s = normalizeSpot(spot);
           return (
             <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => openHomeSpotDetail(s, "home")}>
-              <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
+              <View style={styles.feedImageWrap}>
+                <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
+                {renderSpotFeatureIconsOverlay(s)}
+              </View>
               <View style={styles.feedMeta}>
                 <Text style={styles.feedLocation}>📍 {s.location}</Text>
                 <Text style={styles.feedName}>{s.name}</Text>
@@ -1048,7 +1069,10 @@ export default function App() {
 
       {filteredSpots.map((spot) => (
         <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "buscar")}>
-          <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+          <View style={styles.resultImageWrap}>
+            <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+            {renderSpotFeatureIconsOverlay(spot)}
+          </View>
           <View style={styles.resultMeta}>
             <Text style={styles.resultName}>{spot.name}</Text>
             <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
@@ -1825,6 +1849,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f0dada",
   },
+  feedImageWrap: {
+    position: "relative",
+  },
   feedImage: { width: "100%", height: 120 },
   feedMeta: { padding: 10 },
   feedLocation: { fontSize: 11, color: "#d62828", fontWeight: "600" },
@@ -2062,6 +2089,23 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: "600",
   },
+  spotImageFeatureOverlay: {
+    position: "absolute",
+    top: 6,
+    left: 6,
+    flexDirection: "row",
+  },
+  spotImageFeatureIconBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "rgba(255, 250, 250, 0.95)",
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 4,
+  },
   nearbyButton: {
     marginTop: 14,
     borderWidth: 1,
@@ -2083,6 +2127,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#f0dada",
+  },
+  resultImageWrap: {
+    width: 90,
+    height: 90,
+    position: "relative",
   },
   resultImage: { width: 90, height: 90 },
   resultMeta: { padding: 10, flex: 1, justifyContent: "space-between" },
