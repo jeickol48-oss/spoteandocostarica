@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "Spoteando Costa Rica",
+    "slug": "spoteando-costa-rica",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"]
+  }
+}
