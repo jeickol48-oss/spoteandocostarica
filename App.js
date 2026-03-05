@@ -166,6 +166,8 @@ export default function App() {
     privateProfile: false,
     darkMode: false,
   });
+  const [socialGraph, setSocialGraph] = useState({});
+  const [connectionTab, setConnectionTab] = useState("followers");
 
   const [isRemoteReady, setIsRemoteReady] = useState(false);
 
@@ -202,6 +204,54 @@ export default function App() {
     borderColor: theme.border,
   };
   const themedPlaceholderColor = theme.muted;
+
+  const currentUsername = useMemo(
+    () => normalizeUsername(savedProfile?.username || profileForm.username) || "@tu_usuario",
+    [profileForm.username, savedProfile?.username]
+  );
+
+  const getFollowersForUser = (username) => socialGraph[username]?.followers || [];
+  const getFollowingForUser = (username) => socialGraph[username]?.following || [];
+
+  const upsertUserConnectionNode = (graph, username) => {
+    if (!username) return graph;
+    return {
+      ...graph,
+      [username]: {
+        followers: Array.isArray(graph[username]?.followers) ? graph[username].followers : [],
+        following: Array.isArray(graph[username]?.following) ? graph[username].following : [],
+      },
+    };
+  };
+
+  const toggleFollowUser = (targetUsername) => {
+    if (!targetUsername || targetUsername === currentUsername) return;
+
+    setSocialGraph((current) => {
+      let nextGraph = upsertUserConnectionNode(current, currentUsername);
+      nextGraph = upsertUserConnectionNode(nextGraph, targetUsername);
+
+      const myFollowing = nextGraph[currentUsername].following;
+      const targetFollowers = nextGraph[targetUsername].followers;
+      const isFollowing = myFollowing.includes(targetUsername);
+
+      return {
+        ...nextGraph,
+        [currentUsername]: {
+          ...nextGraph[currentUsername],
+          following: isFollowing
+            ? myFollowing.filter((username) => username !== targetUsername)
+            : [...myFollowing, targetUsername],
+        },
+        [targetUsername]: {
+          ...nextGraph[targetUsername],
+          followers: isFollowing
+            ? targetFollowers.filter((username) => username !== currentUsername)
+            : [...targetFollowers, currentUsername],
+        },
+      };
+    });
+  };
 
   const registerViewedSpot = (spot) => {
     if (!spot?.id) return;
@@ -278,6 +328,9 @@ export default function App() {
         if (remote.spotComments) {
           setSpotComments(remote.spotComments);
         }
+        if (remote.socialGraph) {
+          setSocialGraph(remote.socialGraph);
+        }
         if (typeof remote.nearbyProvince === "string" && remote.nearbyProvince.trim()) {
           setNearbyProvince(remote.nearbyProvince);
         }
@@ -307,6 +360,7 @@ export default function App() {
           viewedSpots,
           settings,
           spotComments,
+          socialGraph,
           nearbyProvince,
         });
       } catch (error) {
@@ -321,6 +375,7 @@ export default function App() {
     savedProfile,
     savedSpotIds,
     settings,
+    socialGraph,
     spotComments,
     spots,
     viewedSpots,
@@ -435,6 +490,27 @@ export default function App() {
 
     return Array.from(map.values());
   }, [savedProfile, spots]);
+
+  useEffect(() => {
+    if (!creators.length) return;
+
+    setSocialGraph((current) => {
+      let next = current;
+      creators.forEach((creator) => {
+        if (!creator?.username) return;
+        const hasNode = next[creator.username];
+        if (hasNode) return;
+        if (next === current) next = { ...current };
+        next[creator.username] = { followers: [], following: [] };
+      });
+
+      if (!next[currentUsername]) {
+        if (next === current) next = { ...current };
+        next[currentUsername] = { followers: [], following: [] };
+      }
+      return next;
+    });
+  }, [creators, currentUsername]);
 
   const filteredCreators = useMemo(() => {
     if (!creatorSearchText.trim()) return creators;
@@ -989,6 +1065,9 @@ export default function App() {
       return popularityB - popularityA;
     });
 
+    const creatorFollowers = getFollowersForUser(selectedCreator.username);
+    const isFollowingCreator = creatorFollowers.includes(currentUsername);
+
     return (
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.postHeaderRow}>
@@ -1004,6 +1083,13 @@ export default function App() {
             <Text style={[styles.creatorName, { color: theme.text }]}>{selectedCreator.fullName}</Text>
             <Text style={[styles.creatorUsername, { color: theme.muted }]}>{selectedCreator.username}</Text>
             <Text style={[styles.profileSubtitle, { color: theme.muted, marginTop: 6 }]}>{selectedCreator.bio || "Sin biografía por ahora."}</Text>
+            <Text style={[styles.profileSubtitle, { color: theme.muted, marginTop: 6 }]}>Seguidores: {creatorFollowers.length}</Text>
+            <TouchableOpacity
+              style={[styles.secondaryAction, { marginTop: 10, alignSelf: "flex-start" }]}
+              onPress={() => toggleFollowUser(selectedCreator.username)}
+            >
+              <Text style={styles.secondaryActionText}>{isFollowingCreator ? "Siguiendo" : "Seguir"}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -1250,6 +1336,9 @@ export default function App() {
       .map(normalizeSpot)
       .filter((spot) => spot.user === profile.username);
     const safeProfilePhotos = Array.isArray(profile.photos) ? profile.photos : [];
+    const myFollowers = getFollowersForUser(profile.username);
+    const myFollowing = getFollowingForUser(profile.username);
+    const visibleConnections = connectionTab === "followers" ? myFollowers : myFollowing;
 
     return (
       <View style={styles.profileEditorCard}>
@@ -1268,6 +1357,48 @@ export default function App() {
             style={styles.profilePreviewAvatar}
           />
         </View>
+
+        <View style={styles.connectionsSummaryRow}>
+          <View style={styles.connectionStatPill}>
+            <Text style={styles.connectionStatValue}>{myFollowers.length}</Text>
+            <Text style={styles.connectionStatLabel}>Seguidores</Text>
+          </View>
+          <View style={styles.connectionStatPill}>
+            <Text style={styles.connectionStatValue}>{myFollowing.length}</Text>
+            <Text style={styles.connectionStatLabel}>Siguiendo</Text>
+          </View>
+        </View>
+
+        <View style={styles.connectionTabRow}>
+          <TouchableOpacity
+            style={[styles.filterChip, connectionTab === "followers" && styles.filterChipActive]}
+            onPress={() => setConnectionTab("followers")}
+          >
+            <Text style={[styles.filterChipText, connectionTab === "followers" && styles.filterChipTextActive]}>
+              Seguidores
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterChip, connectionTab === "following" && styles.filterChipActive]}
+            onPress={() => setConnectionTab("following")}
+          >
+            <Text style={[styles.filterChipText, connectionTab === "following" && styles.filterChipTextActive]}>
+              Siguiendo
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {visibleConnections.length ? (
+          <View style={styles.connectionListBlock}>
+            {visibleConnections.map((username) => (
+              <Text key={`${connectionTab}-${username}`} style={styles.connectionListItem}>{username}</Text>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.profileSubtitle}>
+            {connectionTab === "followers" ? "Aún no tienes seguidores." : "Aún no sigues a nadie."}
+          </Text>
+        )}
 
         <View style={styles.profileGalleryHeader}>
           <Text style={styles.filterTitle}>Fotos del perfil ({safeProfilePhotos.length})</Text>
@@ -1894,6 +2025,49 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  connectionsSummaryRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 10,
+  },
+  connectionStatPill: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#f2c7c7",
+    backgroundColor: "#fff5f5",
+    borderRadius: 12,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  connectionStatValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#7a1c1c",
+  },
+  connectionStatLabel: {
+    fontSize: 11,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+  connectionTabRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  connectionListBlock: {
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 12,
+    backgroundColor: "#fffafa",
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  connectionListItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    fontSize: 13,
+    color: "#374151",
+    fontWeight: "600",
   },
   creatorCard: {
     marginTop: 10,
