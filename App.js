@@ -47,6 +47,7 @@ const seedSpots = [
     province: "Alajuela",
     type: "Montaña",
     user: "@CR_Adventures",
+    features: ["caminata", "mirador"],
   },
   {
     id: "2",
@@ -58,6 +59,7 @@ const seedSpots = [
     province: "Puntarenas",
     type: "Playa",
     user: "@BeachExplorer7",
+    features: ["entraAuto", "mirador"],
   },
   {
     id: "3",
@@ -69,6 +71,7 @@ const seedSpots = [
     province: "Cartago",
     type: "Montaña",
     user: "@MountainViews",
+    features: ["solo4x4", "caminata"],
   },
   {
     id: "4",
@@ -80,6 +83,7 @@ const seedSpots = [
     province: "Limón",
     type: "Playa",
     user: "@WildcrViews",
+    features: ["petFriendly", "entraAuto"],
   },
   {
     id: "5",
@@ -91,6 +95,7 @@ const seedSpots = [
     province: "San José",
     type: "Urbano",
     user: "@NatureLoverCR",
+    features: ["entraAuto", "rioCerca"],
   },
 ];
 
@@ -106,6 +111,16 @@ const provinces = [
 ];
 
 const spotTypes = ["Todos", "Playa", "Montaña", "Catarata", "Urbano", "Sendero"];
+
+
+const spotFeatureOptions = [
+  { key: "solo4x4", label: "Solo 4x4", icon: "car-sport-outline" },
+  { key: "entraAuto", label: "Entra automóvil", icon: "car-outline" },
+  { key: "caminata", label: "Ruta caminata", icon: "walk-outline" },
+  { key: "petFriendly", label: "Pet friendly", icon: "paw-outline" },
+  { key: "mirador", label: "Mirador", icon: "eye-outline" },
+  { key: "rioCerca", label: "Río cerca", icon: "water-outline" },
+];
 
 export default function App() {
   const [spots, setSpots] = useState(seedSpots);
@@ -141,6 +156,7 @@ export default function App() {
     type: "Playa",
     spotPhotos: [],
     locationLabel: "",
+    features: [],
   });
 
   const [selectedLocation, setSelectedLocation] = useState({
@@ -204,6 +220,27 @@ export default function App() {
     borderColor: theme.border,
   };
   const themedPlaceholderColor = theme.muted;
+
+  const featureMetaByKey = useMemo(
+    () => Object.fromEntries(spotFeatureOptions.map((option) => [option.key, option])),
+    []
+  );
+
+  const getSpotFeatures = (spot) =>
+    Array.isArray(spot?.features) ? spot.features.filter((feature) => featureMetaByKey[feature]) : [];
+
+  const toggleFeatureForNewSpot = (featureKey) => {
+    setNewSpot((current) => {
+      const exists = current.features.includes(featureKey);
+      return {
+        ...current,
+        features: exists
+          ? current.features.filter((feature) => feature !== featureKey)
+          : [...current.features, featureKey],
+      };
+    });
+  };
+
 
   const currentUsername = useMemo(
     () => normalizeUsername(savedProfile?.username || profileForm.username) || "@tu_usuario",
@@ -295,6 +332,7 @@ export default function App() {
     province: spot.province || "San José",
     type: spot.type || "Spot",
     user: spot.user || "@CR_Adventures",
+    features: getSpotFeatures(spot),
   });
 
   useEffect(() => {
@@ -731,6 +769,7 @@ export default function App() {
       imageUrl: newSpot.spotPhotos[0] || fallbackImageUrl,
       description: newSpot.description.trim(),
       photos: newSpot.spotPhotos.length ? newSpot.spotPhotos : [fallbackImageUrl],
+      features: newSpot.features,
     };
 
     setSpots((current) => [createdSpot, ...current]);
@@ -741,6 +780,7 @@ export default function App() {
       type: "Playa",
       spotPhotos: [],
       locationLabel: "",
+      features: [],
     });
     setActiveTab("home");
   };
@@ -851,6 +891,20 @@ export default function App() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {getSpotFeatures(selectedHomeSpot).length ? (
+          <View style={styles.spotFeatureRow}>
+            {getSpotFeatures(selectedHomeSpot).map((featureKey) => {
+              const feature = featureMetaByKey[featureKey];
+              return (
+                <View key={`${selectedHomeSpot.id}-${featureKey}`} style={styles.spotFeatureBadge}>
+                  <Ionicons name={feature.icon} size={12} color="#7a1c1c" />
+                  <Text style={styles.spotFeatureText}>{feature.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
 
         <View style={styles.profileGalleryHeader}>
           <Text style={[styles.filterTitle, { color: theme.text }]}>Comentarios de visitantes ({comments.length})</Text>
@@ -1234,6 +1288,30 @@ export default function App() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+      </View>
+
+      <View style={styles.filterBlock}>
+        <Text style={styles.filterTitle}>Características del spot</Text>
+        <View style={styles.addFeatureGrid}>
+          {spotFeatureOptions.map((feature) => {
+            const isSelected = newSpot.features.includes(feature.key);
+            return (
+              <TouchableOpacity
+                key={`feature-${feature.key}`}
+                style={[styles.addFeatureChip, isSelected && styles.addFeatureChipActive]}
+                onPress={() => toggleFeatureForNewSpot(feature.key)}
+              >
+                <Ionicons
+                  name={feature.icon}
+                  size={13}
+                  color={isSelected ? "#ffffff" : "#7a1c1c"}
+                  style={styles.addFeatureIcon}
+                />
+                <Text style={[styles.addFeatureText, isSelected && styles.addFeatureTextActive]}>{feature.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       <TextInput
@@ -1928,6 +2006,62 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: "#7a1c1c", borderColor: "#7a1c1c" },
   filterChipText: { color: "#7a1c1c", fontSize: 12, fontWeight: "600" },
   filterChipTextActive: { color: "#ffffff" },
+  addFeatureGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 4,
+  },
+  addFeatureChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#f2c7c7",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+    backgroundColor: "#fffafa",
+  },
+  addFeatureChipActive: {
+    backgroundColor: "#7a1c1c",
+    borderColor: "#7a1c1c",
+  },
+  addFeatureIcon: {
+    marginRight: 5,
+  },
+  addFeatureText: {
+    fontSize: 11,
+    color: "#7a1c1c",
+    fontWeight: "600",
+  },
+  addFeatureTextActive: {
+    color: "#ffffff",
+  },
+  spotFeatureRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  spotFeatureBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 6,
+    marginBottom: 6,
+    backgroundColor: "#fffafa",
+  },
+  spotFeatureText: {
+    fontSize: 10,
+    color: "#7a1c1c",
+    marginLeft: 4,
+    fontWeight: "600",
+  },
   nearbyButton: {
     marginTop: 14,
     borderWidth: 1,
