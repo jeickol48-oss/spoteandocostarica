@@ -1351,38 +1351,41 @@ export default function App() {
         <Text style={styles.creatorUsername}>{profile.username}</Text>
         <Text style={styles.profileSubtitle}>{profile.bio}</Text>
 
-        <View style={styles.profilePreviewRow}>
+        <View style={styles.instagramProfileTopRow}>
           <Image
             source={{ uri: profile.avatarUrl || fallbackImageUrl }}
             style={styles.profilePreviewAvatar}
           />
+          <View style={styles.instagramCountersRow}>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{mySpots.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Publicaciones</Text>
+            </View>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{myFollowers.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Seguidores</Text>
+            </View>
+            <View style={styles.instagramCounterItem}>
+              <Text style={styles.instagramCounterValue}>{myFollowing.length}</Text>
+              <Text style={styles.instagramCounterLabel}>Siguiendo</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.connectionsSummaryRow}>
-          <View style={styles.connectionStatPill}>
-            <Text style={styles.connectionStatValue}>{myFollowers.length}</Text>
-            <Text style={styles.connectionStatLabel}>Seguidores</Text>
-          </View>
-          <View style={styles.connectionStatPill}>
-            <Text style={styles.connectionStatValue}>{myFollowing.length}</Text>
-            <Text style={styles.connectionStatLabel}>Siguiendo</Text>
-          </View>
-        </View>
-
-        <View style={styles.connectionTabRow}>
+        <View style={styles.instagramTabRow}>
           <TouchableOpacity
-            style={[styles.filterChip, connectionTab === "followers" && styles.filterChipActive]}
+            style={[styles.instagramTabButton, connectionTab === "followers" && styles.instagramTabButtonActive]}
             onPress={() => setConnectionTab("followers")}
           >
-            <Text style={[styles.filterChipText, connectionTab === "followers" && styles.filterChipTextActive]}>
+            <Text style={[styles.instagramTabLabel, connectionTab === "followers" && styles.instagramTabLabelActive]}>
               Seguidores
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.filterChip, connectionTab === "following" && styles.filterChipActive]}
+            style={[styles.instagramTabButton, connectionTab === "following" && styles.instagramTabButtonActive]}
             onPress={() => setConnectionTab("following")}
           >
-            <Text style={[styles.filterChipText, connectionTab === "following" && styles.filterChipTextActive]}>
+            <Text style={[styles.instagramTabLabel, connectionTab === "following" && styles.instagramTabLabelActive]}>
               Siguiendo
             </Text>
           </TouchableOpacity>
@@ -1391,7 +1394,12 @@ export default function App() {
         {visibleConnections.length ? (
           <View style={styles.connectionListBlock}>
             {visibleConnections.map((username) => (
-              <Text key={`${connectionTab}-${username}`} style={styles.connectionListItem}>{username}</Text>
+              <View key={`${connectionTab}-${username}`} style={styles.connectionListRow}>
+                <View style={styles.connectionMiniAvatar}>
+                  <Ionicons name="person" size={14} color="#7a1c1c" />
+                </View>
+                <Text style={styles.connectionListItem}>{username}</Text>
+              </View>
             ))}
           </View>
         ) : (
@@ -2026,48 +2034,83 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  connectionsSummaryRow: {
+  instagramProfileTopRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  connectionStatPill: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#f2c7c7",
-    backgroundColor: "#fff5f5",
-    borderRadius: 12,
-    paddingVertical: 8,
     alignItems: "center",
+    marginBottom: 12,
+    gap: 12,
   },
-  connectionStatValue: {
+  instagramCountersRow: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  instagramCounterItem: {
+    alignItems: "flex-start",
+  },
+  instagramCounterValue: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#7a1c1c",
+    color: "#111827",
   },
-  connectionStatLabel: {
+  instagramCounterLabel: {
     fontSize: 11,
     color: "#6b7280",
     marginTop: 2,
   },
-  connectionTabRow: {
+  instagramTabRow: {
     flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0dada",
     marginBottom: 8,
+  },
+  instagramTabButton: {
+    marginRight: 18,
+    paddingBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+  },
+  instagramTabButtonActive: {
+    borderBottomColor: "#111827",
+  },
+  instagramTabLabel: {
+    color: "#6b7280",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  instagramTabLabelActive: {
+    color: "#111827",
   },
   connectionListBlock: {
     borderWidth: 1,
     borderColor: "#f0dada",
     borderRadius: 12,
     backgroundColor: "#fffafa",
-    paddingVertical: 6,
     marginBottom: 8,
+    overflow: "hidden",
+  },
+  connectionListRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5e7e7",
+  },
+  connectionMiniAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#ffe8e8",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
   },
   connectionListItem: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
     fontSize: 13,
     color: "#374151",
     fontWeight: "600",
+    textAlign: "left",
   },
   creatorCard: {
     marginTop: 10,
