@@ -115,7 +115,7 @@ const spotTypes = ["Todos", "Playa", "Montaña", "Catarata", "Urbano", "Sendero"
 
 const spotFeatureOptions = [
   { key: "solo4x4", label: "Solo 4x4", icon: "car-sport" },
-  { key: "entraAuto", label: "Entra automóvil", icon: "car-outline" },
+  { key: "entraAuto", label: "Entra automóvil", icon: "car" },
   { key: "caminata", label: "Ruta caminata", icon: "walk-outline" },
   { key: "petFriendly", label: "Pet friendly", icon: "paw-outline" },
   { key: "mirador", label: "Mirador", icon: "eye-outline" },
@@ -231,10 +231,11 @@ export default function App() {
 
   const getFeatureIconSize = (featureKey, context = "default") => {
     const is4x4 = featureKey === "solo4x4";
-    if (context === "overlay") return is4x4 ? 12 : 10;
-    if (context === "chip") return is4x4 ? 16 : 13;
-    if (context === "badge") return is4x4 ? 13 : 12;
-    return is4x4 ? 14 : 12;
+    const isCompactCar = featureKey === "entraAuto";
+    if (context === "overlay") return is4x4 ? 13 : isCompactCar ? 9 : 10;
+    if (context === "chip") return is4x4 ? 17 : isCompactCar ? 12 : 13;
+    if (context === "badge") return is4x4 ? 14 : isCompactCar ? 11 : 12;
+    return is4x4 ? 15 : isCompactCar ? 11 : 12;
   };
 
   const toggleFeatureForNewSpot = (featureKey) => {
