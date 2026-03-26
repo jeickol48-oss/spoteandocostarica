@@ -1405,7 +1405,7 @@ export default function App() {
         }
       >
         <Text style={styles.nearbyText}>Abrir ubicación seleccionada en Google Maps</Text>
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
         <Text style={styles.uploadButtonText}>Cargar fotos del spot (máximo 10)</Text>
