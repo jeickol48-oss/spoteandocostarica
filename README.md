@@ -21,6 +21,34 @@ npm install
 npm run start
 ```
 
+## Solución rápida: error `<<<<<<<` en `App.js`
+Si ves un error como:
+
+```text
+Unexpected token ... <<<<<<< ... ======= ... >>>>>>>
+```
+
+tu archivo tiene un conflicto de merge sin resolver.
+
+1. Ejecuta:
+
+```bash
+npm run check:conflicts
+```
+
+Si quieres remover automáticamente solo las líneas de marcadores (`<<<<<<<`, `=======`, `>>>>>>>`), usa:
+
+```bash
+npm run fix:conflicts
+```
+
+2. Abre el archivo/línea reportada y elimina los marcadores:
+   - `<<<<<<<`
+   - `=======`
+   - `>>>>>>>`
+
+3. Conserva solo el bloque de código correcto y vuelve a correr la app.
+
 ## Firebase (almacenamiento de estado)
 Configura estas variables de entorno para habilitar Firestore en Expo:
 

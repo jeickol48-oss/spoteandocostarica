@@ -9,10 +9,9 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
   Switch,
-=======
->>>>>>> main
+  Switch,
+
   Text,
   TextInput,
   TouchableOpacity,
@@ -185,10 +184,9 @@ export default function App() {
     notifications: true,
     privateProfile: false,
     darkMode: false,
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
     language: "es",
-=======
->>>>>>> main
+    language: "es",
+
   });
   const [socialGraph, setSocialGraph] = useState({});
   const [connectionTab, setConnectionTab] = useState("followers");
@@ -222,7 +220,6 @@ export default function App() {
         input: "#fffafa",
       };
 
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
   const isEnglish = settings.language === "en";
   const uiText = {
     settingsTitle: isEnglish ? "Settings" : "Configuración",
@@ -243,8 +240,7 @@ export default function App() {
     englishShort: "EN",
   };
 
-=======
->>>>>>> main
+
   const themedInputStyle = {
     backgroundColor: theme.input,
     color: theme.text,
@@ -1629,7 +1625,6 @@ export default function App() {
     setSettings((current) => ({ ...current, [key]: !current[key] }));
   };
 
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
   const toggleLanguage = () => {
     setSettings((current) => ({
       ...current,
@@ -1643,14 +1638,7 @@ export default function App() {
 
       <View style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}>
         <Text style={[styles.settingLabel, { color: theme.text }]}>{uiText.appTone}</Text>
-=======
-  const renderSettings = () => (
-    <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <Text style={[styles.searchTitle, { color: theme.text }]}>Configuración</Text>
 
-      <View style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}>
-        <Text style={[styles.settingLabel, { color: theme.text }]}>Tono de la app</Text>
->>>>>>> main
         <View style={styles.themeToggleRow}>
           <TouchableOpacity
             style={[styles.themeButton, !settings.darkMode && styles.themeButtonActive]}
@@ -1662,11 +1650,9 @@ export default function App() {
                 !settings.darkMode && styles.themeButtonTextActive,
               ]}
             >
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
               {uiText.light}
-=======
-              Claro
->>>>>>> main
+              {uiText.light}
+
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1676,11 +1662,9 @@ export default function App() {
             <Text
               style={[styles.themeButtonText, settings.darkMode && styles.themeButtonTextActive]}
             >
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
               {uiText.dark}
-=======
-              Oscuro
->>>>>>> main
+              {uiText.dark}
+
             </Text>
           </TouchableOpacity>
         </View>
@@ -1690,21 +1674,16 @@ export default function App() {
         style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
         onPress={() => toggleSetting("notifications")}
       >
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
         <Text style={[styles.settingLabel, { color: theme.text }]}>{uiText.notifications}</Text>
         <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>
           {settings.notifications ? uiText.on : uiText.off}
         </Text>
-=======
-        <Text style={[styles.settingLabel, { color: theme.text }]}>Notificaciones</Text>
-        <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>{settings.notifications ? "ON" : "OFF"}</Text>
->>>>>>> main
+
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
         onPress={() => toggleSetting("privateProfile")}
       >
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
         <Text style={[styles.settingLabel, { color: theme.text }]}>{uiText.privateProfile}</Text>
         <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>
           {settings.privateProfile ? uiText.on : uiText.off}
@@ -1728,14 +1707,7 @@ export default function App() {
 
       <View style={styles.profileGalleryHeader}>
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.recentActivity}</Text>
-=======
-        <Text style={[styles.settingLabel, { color: theme.text }]}>Perfil privado</Text>
-        <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>{settings.privateProfile ? "ON" : "OFF"}</Text>
-      </TouchableOpacity>
 
-      <View style={styles.profileGalleryHeader}>
-        <Text style={[styles.filterTitle, { color: theme.text }]}>Actividad reciente (últimos 3 vistos)</Text>
->>>>>>> main
       </View>
       {viewedSpots.length ? (
         viewedSpots.slice(0, 3).map((spot) => (
@@ -1751,11 +1723,9 @@ export default function App() {
       )}
 
       <View style={styles.profileGalleryHeader}>
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.savedTitle} ({savedSpots.length})</Text>
-=======
-        <Text style={[styles.filterTitle, { color: theme.text }]}>Guardados ({savedSpots.length})</Text>
->>>>>>> main
+        <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.savedTitle} ({savedSpots.length})</Text>
+
       </View>
       {savedSpots.length ? (
         savedSpots.map((spot) => (
@@ -2500,13 +2470,11 @@ const styles = StyleSheet.create({
     color: "#7a1c1c",
     fontWeight: "600",
   },
-<<<<<<< codex/create-location-sharing-app-for-costa-rica-87aoej
   settingHint: {
     fontSize: 11,
     marginTop: 3,
   },
-=======
->>>>>>> main
+
   settingValue: {
     fontSize: 12,
     color: "#d62828",
