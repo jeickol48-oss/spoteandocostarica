@@ -1405,7 +1405,7 @@ export default function App() {
         }
       >
         <Text style={styles.nearbyText}>Abrir ubicación seleccionada en Google Maps</Text>
-      </TouchableOpacity>
+      </View>
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
         <Text style={styles.uploadButtonText}>Cargar fotos del spot (máximo 10)</Text>
@@ -1692,7 +1692,7 @@ export default function App() {
           trackColor={{ false: "#f2c7c7", true: "#d62828" }}
           thumbColor="#ffffff"
         />
-      </TouchableOpacity>
+      </View>
 
       <View style={styles.profileGalleryHeader}>
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.recentActivity}</Text>
