@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = process.cwd();
+const SHOULD_FIX = process.argv.includes('--fix');
 const EXCLUDED_DIRS = new Set(['.git', 'node_modules', '.expo', 'android', 'ios']);
 const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.json', '.md']);
 const CONFLICT_PATTERNS = [/^<<<<<<< /m, /^=======$/m, /^>>>>>>> /m];
@@ -35,6 +36,18 @@ function findConflictLines(content) {
   return matches;
 }
 
+function removeConflictMarkerLines(content) {
+  return content
+    .split(/\r?\n/)
+    .filter(
+      (line) =>
+        !line.startsWith('<<<<<<< ') &&
+        line !== '=======' &&
+        !line.startsWith('>>>>>>> ')
+    )
+    .join('\n');
+}
+
 const files = walk(ROOT);
 const conflicts = [];
 
@@ -44,12 +57,26 @@ for (const filePath of files) {
 
   const lineNumbers = findConflictLines(content);
   if (lineNumbers.length) {
+    if (SHOULD_FIX) {
+      const cleaned = removeConflictMarkerLines(content);
+      fs.writeFileSync(filePath, cleaned, 'utf8');
+    }
     conflicts.push({ filePath, lineNumbers });
   }
 }
 
 if (!conflicts.length) {
   console.log('✅ No se encontraron marcadores de conflicto de merge.');
+  process.exit(0);
+}
+
+if (SHOULD_FIX) {
+  console.log('🛠️ Se eliminaron líneas de marcadores de conflicto en los siguientes archivos:');
+  for (const conflict of conflicts) {
+    const relativePath = path.relative(ROOT, conflict.filePath);
+    console.log(`- ${relativePath}: líneas ${conflict.lineNumbers.join(', ')}`);
+  }
+  console.log('\n✅ Marcadores removidos. Revisa el código resultante y conserva únicamente el bloque correcto.');
   process.exit(0);
 }
 

@@ -36,6 +36,12 @@ tu archivo tiene un conflicto de merge sin resolver.
 npm run check:conflicts
 ```
 
+Si quieres remover automáticamente solo las líneas de marcadores (`<<<<<<<`, `=======`, `>>>>>>>`), usa:
+
+```bash
+npm run fix:conflicts
+```
+
 2. Abre el archivo/línea reportada y elimina los marcadores:
    - `<<<<<<<`
    - `=======`

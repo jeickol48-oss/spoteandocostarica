@@ -5,6 +5,7 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "check:conflicts": "node scripts/check-merge-conflicts.js",
+    "fix:conflicts": "node scripts/check-merge-conflicts.js --fix",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
