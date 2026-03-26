@@ -48,6 +48,49 @@ function removeConflictMarkerLines(content) {
     .join('\n');
 }
 
+function removeDuplicateNamedImportMembers(content) {
+  const lines = content.split(/\r?\n/);
+  let insideImportBlock = false;
+  const seenMembers = new Set();
+  const output = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('import {') && !trimmed.includes('} from ')) {
+      insideImportBlock = true;
+      seenMembers.clear();
+      output.push(line);
+      continue;
+    }
+
+    if (insideImportBlock) {
+      if (trimmed.startsWith('} from ')) {
+        insideImportBlock = false;
+        output.push(line);
+        continue;
+      }
+
+      if (trimmed === '') {
+        output.push(line);
+        continue;
+      }
+
+      const rawMember = trimmed.replace(/,$/, '');
+      if (seenMembers.has(rawMember)) {
+        continue;
+      }
+      seenMembers.add(rawMember);
+      output.push(line);
+      continue;
+    }
+
+    output.push(line);
+  }
+
+  return output.join('\n');
+}
+
 const files = walk(ROOT);
 const conflicts = [];
 
@@ -58,10 +101,20 @@ for (const filePath of files) {
   const lineNumbers = findConflictLines(content);
   if (lineNumbers.length) {
     if (SHOULD_FIX) {
-      const cleaned = removeConflictMarkerLines(content);
+      const cleaned = removeDuplicateNamedImportMembers(removeConflictMarkerLines(content));
       fs.writeFileSync(filePath, cleaned, 'utf8');
     }
     conflicts.push({ filePath, lineNumbers });
+  }
+}
+
+if (SHOULD_FIX && !conflicts.length) {
+  for (const filePath of files) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const normalized = removeDuplicateNamedImportMembers(content);
+    if (normalized !== content) {
+      fs.writeFileSync(filePath, normalized, 'utf8');
+    }
   }
 }
 

@@ -42,6 +42,8 @@ Si quieres remover automáticamente solo las líneas de marcadores (`<<<<<<<`, `
 npm run fix:conflicts
 ```
 
+Este comando también limpia imports duplicados dentro de bloques `import { ... }` (por ejemplo `Switch` repetido en `App.js`).
+
 2. Abre el archivo/línea reportada y elimina los marcadores:
    - `<<<<<<<`
    - `=======`
