@@ -10,6 +10,8 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
+  Switch,
+
   Text,
   TextInput,
   TouchableOpacity,
@@ -183,6 +185,8 @@ export default function App() {
     privateProfile: false,
     darkMode: false,
     language: "es",
+    language: "es",
+
   });
   const [socialGraph, setSocialGraph] = useState({});
   const [connectionTab, setConnectionTab] = useState("followers");
@@ -235,6 +239,7 @@ export default function App() {
     spanishShort: "ES",
     englishShort: "EN",
   };
+
 
   const themedInputStyle = {
     backgroundColor: theme.input,
@@ -1633,6 +1638,7 @@ export default function App() {
 
       <View style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}>
         <Text style={[styles.settingLabel, { color: theme.text }]}>{uiText.appTone}</Text>
+
         <View style={styles.themeToggleRow}>
           <TouchableOpacity
             style={[styles.themeButton, !settings.darkMode && styles.themeButtonActive]}
@@ -1645,6 +1651,8 @@ export default function App() {
               ]}
             >
               {uiText.light}
+              {uiText.light}
+
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1655,6 +1663,8 @@ export default function App() {
               style={[styles.themeButtonText, settings.darkMode && styles.themeButtonTextActive]}
             >
               {uiText.dark}
+              {uiText.dark}
+
             </Text>
           </TouchableOpacity>
         </View>
@@ -1668,6 +1678,7 @@ export default function App() {
         <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>
           {settings.notifications ? uiText.on : uiText.off}
         </Text>
+
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
@@ -1696,6 +1707,7 @@ export default function App() {
 
       <View style={styles.profileGalleryHeader}>
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.recentActivity}</Text>
+
       </View>
       {viewedSpots.length ? (
         viewedSpots.slice(0, 3).map((spot) => (
@@ -1712,6 +1724,8 @@ export default function App() {
 
       <View style={styles.profileGalleryHeader}>
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.savedTitle} ({savedSpots.length})</Text>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.savedTitle} ({savedSpots.length})</Text>
+
       </View>
       {savedSpots.length ? (
         savedSpots.map((spot) => (
@@ -2460,6 +2474,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 3,
   },
+
   settingValue: {
     fontSize: 12,
     color: "#d62828",
