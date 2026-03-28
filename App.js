@@ -115,6 +115,15 @@ const provinces = [
 
 const spotTypes = ["Todos", "Playa", "Montaña", "Catarata", "Urbano", "Sendero"];
 
+const spotTypeLabelsEn = {
+  Todos: "All",
+  Playa: "Beach",
+  Montaña: "Mountain",
+  Catarata: "Waterfall",
+  Urbano: "Urban",
+  Sendero: "Trail",
+};
+
 
 const spotFeatureOptions = [
   { key: "solo4x4", label: "Solo 4x4", icon: "car-sport" },
@@ -124,6 +133,15 @@ const spotFeatureOptions = [
   { key: "mirador", label: "Mirador", icon: "eye-outline" },
   { key: "rioCerca", label: "Río cerca", icon: "water-outline" },
 ];
+
+const spotFeatureLabelsEn = {
+  solo4x4: "4x4 only",
+  entraAuto: "Car access",
+  caminata: "Hiking route",
+  petFriendly: "Pet friendly",
+  mirador: "Viewpoint",
+  rioCerca: "River nearby",
+};
 
 export default function App() {
   const [spots, setSpots] = useState(seedSpots);
@@ -308,6 +326,10 @@ export default function App() {
 
   const getSpotFeatures = (spot) =>
     Array.isArray(spot?.features) ? spot.features.filter((feature) => featureMetaByKey[feature]) : [];
+
+  const getSpotTypeLabel = (type) => (isEnglish ? spotTypeLabelsEn[type] || type : type);
+  const getSpotFeatureLabel = (featureKey) =>
+    isEnglish ? spotFeatureLabelsEn[featureKey] || featureMetaByKey[featureKey]?.label || featureKey : featureMetaByKey[featureKey]?.label || featureKey;
 
   const getFeatureIconSize = (featureKey, context = "default") => {
     const is4x4 = featureKey === "solo4x4";
@@ -1009,7 +1031,9 @@ export default function App() {
         </View>
 
         <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
-        <Text style={[styles.postMeta, { color: theme.muted }]}>Tipo: {selectedHomeSpot.type} · Creador: {selectedHomeSpot.user}</Text>
+        <Text style={[styles.postMeta, { color: theme.muted }]}>
+          {uiText.spotType}: {getSpotTypeLabel(selectedHomeSpot.type)} · {isEnglish ? "Creator" : "Creador"}: {selectedHomeSpot.user}
+        </Text>
         <Text style={[styles.postDescription, { color: theme.text }]}>{selectedHomeSpot.description}</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
@@ -1055,7 +1079,7 @@ export default function App() {
               return (
                 <View key={`${selectedHomeSpot.id}-${featureKey}`} style={styles.spotFeatureBadge}>
                   <Ionicons name={feature.icon} size={getFeatureIconSize(featureKey, "badge")} color="#7a1c1c" />
-                  <Text style={styles.spotFeatureText}>{feature.label}</Text>
+                  <Text style={styles.spotFeatureText}>{getSpotFeatureLabel(featureKey)}</Text>
                 </View>
               );
             })}
@@ -1222,7 +1246,7 @@ export default function App() {
                     typeFilter === type && styles.filterChipTextActive,
                   ]}
                 >
-                  {type}
+                  {getSpotTypeLabel(type)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -1252,7 +1276,7 @@ export default function App() {
           </View>
           <View style={styles.resultMeta}>
             <Text style={styles.resultName}>{spot.name}</Text>
-            <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
+            <Text style={styles.resultDetail}>{spot.province} · {getSpotTypeLabel(spot.type)}</Text>
             <View style={styles.feedFooterActions}>
               <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
                 <Text style={styles.feedActionText}>{uiText.openMap}</Text>
@@ -1410,7 +1434,9 @@ export default function App() {
               <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
               <View style={styles.resultMeta}>
                 <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
-                <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
+                <Text style={[styles.resultDetail, { color: theme.muted }]}>
+                  {spot.province} · {getSpotTypeLabel(spot.type)}
+                </Text>
               </View>
             </TouchableOpacity>
           ))
@@ -1484,7 +1510,7 @@ export default function App() {
                   newSpot.type === type && styles.filterChipTextActive,
                 ]}
               >
-                {type}
+                {getSpotTypeLabel(type)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -1508,7 +1534,9 @@ export default function App() {
                   color={isSelected ? "#ffffff" : "#7a1c1c"}
                   style={styles.addFeatureIcon}
                 />
-                <Text style={[styles.addFeatureText, isSelected && styles.addFeatureTextActive]}>{feature.label}</Text>
+                <Text style={[styles.addFeatureText, isSelected && styles.addFeatureTextActive]}>
+                  {getSpotFeatureLabel(feature.key)}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -1742,7 +1770,7 @@ export default function App() {
               <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
               <View style={styles.resultMeta}>
                 <Text style={styles.resultName}>{spot.name}</Text>
-                <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
+                <Text style={styles.resultDetail}>{spot.province} · {getSpotTypeLabel(spot.type)}</Text>
                 <TouchableOpacity
                   style={styles.feedAction}
                   onPress={() => handleOpenMap(spot.mapUrl, spot)}
@@ -1847,7 +1875,7 @@ export default function App() {
           <View key={`viewed-${spot.id}`} style={[styles.activityCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.activityMessage, { color: theme.text }]}>Viste: {spot.name}</Text>
             <Text style={[styles.activityDate, { color: theme.muted }]}>
-              {spot.province} · {spot.type} · {spot.dateLabel}
+              {spot.province} · {getSpotTypeLabel(spot.type)} · {spot.dateLabel}
             </Text>
           </View>
         ))
@@ -1864,7 +1892,9 @@ export default function App() {
             <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
             <View style={styles.resultMeta}>
               <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
-              <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
+              <Text style={[styles.resultDetail, { color: theme.muted }]}>
+                {spot.province} · {getSpotTypeLabel(spot.type)}
+              </Text>
               <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
                 <Text style={styles.feedActionText}>{uiText.openMap}</Text>
               </TouchableOpacity>
@@ -1892,7 +1922,9 @@ export default function App() {
             <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
             <View style={styles.resultMeta}>
               <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
-              <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
+              <Text style={[styles.resultDetail, { color: theme.muted }]}>
+                {spot.province} · {getSpotTypeLabel(spot.type)}
+              </Text>
             </View>
           </TouchableOpacity>
         ))
