@@ -1787,9 +1787,14 @@ export default function App() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { backgroundColor: theme.header }]}>
         <View style={styles.headerRow}>
-          <View>
+          <View style={styles.headerBrand}>
+            <View style={styles.headerLogo}>
+              <Ionicons name="location" size={18} color="#7a1c1c" />
+            </View>
+            <View>
             <Text style={styles.headerTitle}>Spoteando</Text>
             <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
+            </View>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={() => setActiveTab("favoritos")}>
@@ -1859,6 +1864,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#7a1c1c",
   },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  headerBrand: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#ffffff",
+  },
   headerTitle: { fontSize: 24, fontWeight: "700", color: "#ffffff" },
   headerSubtitle: { fontSize: 14, color: "#ffe5e5", marginTop: 2 },
   headerActions: { flexDirection: "row", gap: 12 },
