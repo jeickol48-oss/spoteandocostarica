@@ -20,6 +20,8 @@ import * as Location from "expo-location";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { hasFirebaseConfig, loadRemoteState, saveRemoteState } from "./firebaseConfig";
+const appLogoDataUri =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAADGklEQVR42u2aa29MURSGzz8lCIIQmpaq6f3e6WWqnd51ehm9m+r9Oi1tSpUKEUKIEEKIEH7AS6MfRKqmZ699zl57ryd5Pu+V503mw8x4niAIgiAw5UfeIUgFzXy/chh+lXo++RY5AmqlagZ8jRyFbqXyHnzJP4agleq7fC44jrB0OvynwhMwRefifyw6CdN0Jv6H4lMwVevjvy8+DdO1Nv67kjPgonXx35aeBTetGuBN2Tlw05r4r8vPg6vs47+quADush7gZUUWuMs2/ovKbNgiywGeV+XAFtnFf1Z9EbbJaoCnNbkIwh2CeovVAE+il6HDTND1Npv4j6N5oNYPOu5gMcCj2ggoVYH6FhYDPKzLB5UUUN7DYoDt+gJQSAnVTSwGuN9QBAopobqJxQBbsWKoqgOKu1gMsBkrgao6oLjL+Ph3G8tAoQ6objN+hI2r5VBVBxR3sfgIWm+qhIo6Ub2NxQBrzVVQVQcUd7EY4Fa8GqrqgOIuFgOsxqNQVQcUd7EYIN1SC1V1QHEXiwGWW+tAISVUN7H5SnqxrQGqUkJxD6sfZObbY6CQAqpbWA0w19EIKlWgvIPdD/MzHU2g0g+U77P8W8p0ZzOozQQd73pcmeyKQ6c76H7D48zEtVZw1+POeHcbuOrZQirRAW56NjGW6AQ3PdsY6ekCFz1bGe7thul6tjPYl4Cpeq4w0N8D0/RcI5nsgyl6LtOf7EdYesJveq8nEbRSfQ8SAwPQrVTOgO7BQVArVX3SNTQEv0o9RTqHR6CqVFSgfXgUqkpFn7SNjIFKqemDltEUqJSaByQ+Ng5qpeoBaLoxAWqlaoY0piahS6mbAbHUFHQpdf9D/fgMdCuV96Hu5ix0K5X3IToxB91K5X9QM7mAoJTae1A1tYiglNp/UTG1hKCV6n9QPp1G0Er1XUpnVhCWUv8XJbOrCEvn4xfN3UbYOj1A4fwawtbpAfLn1xG2zsaPLGzAFJ0cIG/xDkzRufi5S5swTacGuLR8D6bpTPyc9BZM1YkBstMPYKrWx89a2YbpyncTgiAIgiAIgiAIFvMTibILFS3YI8gAAAAASUVORK5CYII=";
 
 const fallbackImageUrl =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80";
@@ -1788,9 +1790,7 @@ export default function App() {
       <View style={[styles.header, { backgroundColor: theme.header }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerBrand}>
-            <View style={styles.headerLogo}>
-              <Ionicons name="location" size={18} color="#7a1c1c" />
-            </View>
+            <Image source={{ uri: appLogoDataUri }} style={styles.headerLogo} />
             <View>
             <Text style={styles.headerTitle}>Spoteando</Text>
             <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
@@ -1866,10 +1866,9 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerBrand: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerLogo: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "#ffffff",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   headerTitle: { fontSize: 24, fontWeight: "700", color: "#ffffff" },
   headerSubtitle: { fontSize: 14, color: "#ffe5e5", marginTop: 2 },
