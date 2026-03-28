@@ -1577,7 +1577,7 @@ export default function App() {
           source={{ uri: profileForm.avatarUrl || fallbackImageUrl }}
           style={styles.profilePreviewAvatar}
         />
-        <TouchableOpacity style={styles.uploadButton} onPress={pickProfileAvatar}>
+        <TouchableOpacity style={[styles.uploadButton, styles.profileUploadButton]} onPress={pickProfileAvatar}>
           <Text style={styles.uploadButtonText}>{uiText.changeProfilePhoto}</Text>
         </TouchableOpacity>
       </View>
@@ -2468,6 +2468,10 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     color: "#7a1c1c",
     fontWeight: "700",
+  },
+  profileUploadButton: {
+    marginTop: 0,
+    paddingHorizontal: 16,
   },
   photoPreviewRow: {
     marginTop: 10,
