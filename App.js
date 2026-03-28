@@ -151,6 +151,10 @@ export default function App() {
     "4": [{ id: "c5", user: "@CaribeLover", text: "Ambiente super chill y buena comida." }],
     "5": [{ id: "c6", user: "@SJWalks", text: "Perfecto para ir en familia." }],
   });
+  const [commentLikes, setCommentLikes] = useState({});
+  const [commentReplies, setCommentReplies] = useState({});
+  const [replyDraftByComment, setReplyDraftByComment] = useState({});
+  const [replyInputVisible, setReplyInputVisible] = useState({});
 
   const [newSpot, setNewSpot] = useState({
     name: "",
@@ -580,6 +584,51 @@ export default function App() {
       [selectedHomeSpot.id]: [newComment, ...(current[selectedHomeSpot.id] || [])],
     }));
     setCommentDraft("");
+  };
+
+  const toggleCommentLike = (commentId) => {
+    setCommentLikes((current) => ({
+      ...current,
+      [commentId]: current[commentId] ? current[commentId] - 1 : 1,
+    }));
+  };
+
+  const toggleReplyComposer = (commentId) => {
+    setReplyInputVisible((current) => ({
+      ...current,
+      [commentId]: !current[commentId],
+    }));
+  };
+
+  const handleReplyDraftChange = (commentId, value) => {
+    setReplyDraftByComment((current) => ({
+      ...current,
+      [commentId]: value,
+    }));
+  };
+
+  const handleAddReply = (commentId) => {
+    const draft = replyDraftByComment[commentId]?.trim();
+    if (!selectedHomeSpot || !draft) return;
+
+    const newReply = {
+      id: `${commentId}-r-${Date.now()}`,
+      user: normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante",
+      text: draft,
+    };
+
+    setCommentReplies((current) => ({
+      ...current,
+      [commentId]: [...(current[commentId] || []), newReply],
+    }));
+    setReplyDraftByComment((current) => ({
+      ...current,
+      [commentId]: "",
+    }));
+    setReplyInputVisible((current) => ({
+      ...current,
+      [commentId]: false,
+    }));
   };
 
   const filteredSpots = useMemo(() => {
@@ -1035,6 +1084,48 @@ export default function App() {
               <View key={comment.id} style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}> 
                 <Text style={[styles.creatorUsername, { color: theme.text }]}>{comment.user}</Text>
                 <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{comment.text}</Text>
+                <View style={styles.commentActionsRow}>
+                  <TouchableOpacity style={styles.commentActionButton} onPress={() => toggleCommentLike(comment.id)}>
+                    <Ionicons
+                      name={commentLikes[comment.id] ? "heart" : "heart-outline"}
+                      size={15}
+                      color={commentLikes[comment.id] ? "#b91c1c" : theme.muted}
+                    />
+                    <Text style={[styles.commentActionText, { color: theme.muted }]}>
+                      {commentLikes[comment.id] || 0}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.commentActionButton} onPress={() => toggleReplyComposer(comment.id)}>
+                    <Ionicons name="chatbox-ellipses-outline" size={15} color={theme.muted} />
+                    <Text style={[styles.commentActionText, { color: theme.muted }]}>Responder</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {replyInputVisible[comment.id] ? (
+                  <View style={styles.replyComposerWrap}>
+                    <TextInput
+                      value={replyDraftByComment[comment.id] || ""}
+                      onChangeText={(value) => handleReplyDraftChange(comment.id, value)}
+                      placeholder="Escribe una respuesta..."
+                      placeholderTextColor={theme.muted}
+                      style={[styles.searchInput, themedInputStyle, styles.replyInput]}
+                    />
+                    <TouchableOpacity style={styles.replySendButton} onPress={() => handleAddReply(comment.id)}>
+                      <Text style={styles.replySendButtonText}>Enviar</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+
+                {(commentReplies[comment.id] || []).length ? (
+                  <View style={styles.replyList}>
+                    {(commentReplies[comment.id] || []).map((reply) => (
+                      <View key={reply.id} style={[styles.replyItem, { borderColor: theme.border }]}>
+                        <Text style={[styles.replyUser, { color: theme.text }]}>{reply.user}</Text>
+                        <Text style={[styles.replyText, { color: theme.muted }]}>{reply.text}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
               </View>
             ))
           ) : (
@@ -2093,6 +2184,60 @@ const styles = StyleSheet.create({
   },
   commentsList: {
     marginTop: 8,
+  },
+  commentActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 14,
+  },
+  commentActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  commentActionText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  replyComposerWrap: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  replyInput: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  replySendButton: {
+    backgroundColor: "#7a1c1c",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  replySendButtonText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  replyList: {
+    marginTop: 8,
+    gap: 6,
+  },
+  replyItem: {
+    borderLeftWidth: 2,
+    paddingLeft: 10,
+    marginLeft: 2,
+  },
+  replyUser: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  replyText: {
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 16,
   },
   galleryScreen: {
     backgroundColor: "#0b0f15",
