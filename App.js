@@ -704,6 +704,11 @@ export default function App() {
     return Array.from(map.values());
   }, [savedProfile, spots]);
 
+  const creatorsByUsername = useMemo(
+    () => Object.fromEntries(creators.map((creator) => [creator.username, creator])),
+    [creators]
+  );
+
   useEffect(() => {
     if (!creators.length) return;
 
@@ -1728,12 +1733,31 @@ export default function App() {
         {visibleConnections.length ? (
           <View style={styles.connectionListBlock}>
             {visibleConnections.map((username) => (
-              <View key={`${connectionTab}-${username}`} style={styles.connectionListRow}>
-                <View style={styles.connectionMiniAvatar}>
-                  <Ionicons name="person" size={14} color="#7a1c1c" />
+              <TouchableOpacity
+                key={`${connectionTab}-${username}`}
+                style={styles.connectionListRow}
+                onPress={() => {
+                  const creatorProfile = creatorsByUsername[username] || {
+                    username,
+                    fullName: username,
+                    bio: "Creador de spots",
+                    avatarUrl: fallbackImageUrl,
+                  };
+                  openCreatorDetail(creatorProfile);
+                }}
+              >
+                <Image
+                  source={{ uri: creatorsByUsername[username]?.avatarUrl || fallbackImageUrl }}
+                  style={styles.connectionAvatarImage}
+                />
+                <View style={styles.connectionMetaCol}>
+                  <Text style={styles.connectionListItem}>{username}</Text>
+                  <Text style={styles.connectionListSubtext}>
+                    {creatorsByUsername[username]?.fullName || "Ver perfil"}
+                  </Text>
                 </View>
-                <Text style={styles.connectionListItem}>{username}</Text>
-              </View>
+                <Ionicons name="chevron-forward" size={16} color="#7a1c1c" />
+              </TouchableOpacity>
             ))}
           </View>
         ) : (
@@ -2600,35 +2624,38 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   connectionListBlock: {
-    borderWidth: 1,
-    borderColor: "#f0dada",
-    borderRadius: 12,
-    backgroundColor: "#fffafa",
     marginBottom: 8,
-    overflow: "hidden",
   },
   connectionListRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f5e7e7",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 12,
+    backgroundColor: "#fffafa",
+    marginBottom: 8,
   },
-  connectionMiniAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#ffe8e8",
-    alignItems: "center",
-    justifyContent: "center",
+  connectionAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
+  },
+  connectionMetaCol: {
+    flex: 1,
   },
   connectionListItem: {
     fontSize: 13,
     color: "#374151",
     fontWeight: "600",
     textAlign: "left",
+  },
+  connectionListSubtext: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
   },
   creatorCard: {
     marginTop: 10,
