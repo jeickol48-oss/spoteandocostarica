@@ -232,6 +232,58 @@ export default function App() {
       ? "Recent activity (last 3 viewed)"
       : "Actividad reciente (últimos 3 vistos)",
     savedTitle: isEnglish ? "Saved" : "Guardados",
+    headerCountry: isEnglish ? "Costa Rica" : "Costa Rica",
+    homeFeatured: isEnglish ? "Featured posts" : "Publicaciones destacadas",
+    spotsCount: isEnglish ? "spots" : "spots",
+    searchSpots: isEnglish ? "Search spots" : "Buscar spots",
+    searchByName: isEnglish ? "Search by name..." : "Buscar por nombre...",
+    province: isEnglish ? "Province" : "Provincia",
+    spotType: isEnglish ? "Spot type" : "Tipo de spot",
+    nearbyToggle: isEnglish ? "Recommendations near you" : "Recomendaciones cerca de ti",
+    results: isEnglish ? "Results" : "Resultados",
+    foundCount: isEnglish ? "found" : "encontrados",
+    nearYou: isEnglish ? "Near you" : "Cerca de ti",
+    searchCreators: isEnglish ? "Search creators" : "Buscar creadores",
+    searchCreatorsPlaceholder: isEnglish ? "Search creator profiles..." : "Buscar perfiles de creadores...",
+    openMap: isEnglish ? "Open map" : "Abrir mapa",
+    save: isEnglish ? "Save" : "Guardar",
+    saved: isEnglish ? "Saved" : "Guardado",
+    addSpot: isEnglish ? "Add new spot" : "Agregar nuevo spot",
+    spotNamePlaceholder: isEnglish ? "Spot name" : "Nombre del spot",
+    spotDescriptionPlaceholder: isEnglish ? "Short description" : "Descripción corta",
+    exactLocation: isEnglish ? "Exact spot location" : "Ubicación exacta del spot",
+    useMyLocation: isEnglish ? "Use my location" : "Usar mi ubicación",
+    openSelectedMap: isEnglish ? "Open selected location in Google Maps" : "Abrir ubicación seleccionada en Google Maps",
+    uploadSpotPhotos: isEnglish ? "Upload spot photos (max 10)" : "Cargar fotos del spot (máximo 10)",
+    saveSpot: isEnglish ? "Save spot" : "Guardar spot",
+    yourProfile: isEnglish ? "Your profile" : "Tu perfil",
+    changeProfilePhoto: isEnglish ? "Change profile photo" : "Cambiar foto de perfil",
+    fullNamePlaceholder: isEnglish ? "Full name" : "Nombre completo",
+    usernamePlaceholder: isEnglish ? "Username (@your_user)" : "Usuario (@tu_usuario)",
+    aboutYouPlaceholder: isEnglish ? "Tell us about yourself..." : "Cuéntanos sobre ti...",
+    addPhoto: isEnglish ? "Add photo" : "Agregar foto",
+    saveProfile: isEnglish ? "Save profile" : "Guardar perfil",
+    favorites: isEnglish ? "Favorites" : "Favoritos",
+    savedSpotsCount: isEnglish ? "Saved spots" : "Spots guardados",
+    notificationsCenter: isEnglish ? "Notifications center" : "Centro de notificaciones",
+    latestActivity: isEnglish ? "Latest recent activity" : "Última actividad reciente",
+    visited: isEnglish ? "Visited" : "Visitaste",
+    navSearch: isEnglish ? "Search" : "Buscar",
+    navHome: isEnglish ? "Home" : "Inicio",
+    navAdd: isEnglish ? "Add" : "Agregar",
+    navProfile: isEnglish ? "Profile" : "Perfil",
+    navConfig: isEnglish ? "Settings" : "Config.",
+    spotFeatures: isEnglish ? "Spot features" : "Características del spot",
+    locationNamePlaceholder: isEnglish
+      ? "Location name (e.g. Orosi viewpoint)"
+      : "Nombre de ubicación (ej. Mirador de Orosi)",
+    noSavedYet: isEnglish ? "You don't have saved spots yet." : "No tienes spots guardados todavía.",
+    noFavoritesYet: isEnglish ? "You don't have favorite spots yet." : "No tienes spots favoritos todavía.",
+    noNotificationsYet: isEnglish ? "You have no notifications right now." : "No tienes notificaciones por ahora.",
+    noRecentViewed: isEnglish
+      ? "You haven't viewed spots recently."
+      : "Todavía no has visto spots recientemente.",
+    visitedLabel: isEnglish ? "Visited" : "Visitaste",
     on: "ON",
     off: "OFF",
     spanishShort: "ES",
@@ -508,11 +560,11 @@ export default function App() {
   };
 
   const handleProfileQuickActions = () => {
-    Alert.alert("Acciones rápidas", "¿Qué quieres abrir?", [
-      { text: "Mi perfil", onPress: () => setActiveTab("perfil") },
-      { text: "Notificaciones", onPress: () => setActiveTab("notificaciones") },
-      { text: "Configuración", onPress: () => setActiveTab("config") },
-      { text: "Cancelar", style: "cancel" },
+    Alert.alert(isEnglish ? "Quick actions" : "Acciones rápidas", isEnglish ? "What do you want to open?" : "¿Qué quieres abrir?", [
+      { text: isEnglish ? "My profile" : "Mi perfil", onPress: () => setActiveTab("perfil") },
+      { text: uiText.notifications, onPress: () => setActiveTab("notificaciones") },
+      { text: uiText.settingsTitle, onPress: () => setActiveTab("config") },
+      { text: isEnglish ? "Cancel" : "Cancelar", style: "cancel" },
     ]);
   };
 
@@ -858,8 +910,8 @@ export default function App() {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Publicaciones destacadas</Text>
-        <Text style={[styles.sectionCount, { color: theme.muted }]}>{spots.length} spots</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.homeFeatured}</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{spots.length} {uiText.spotsCount}</Text>
       </View>
 
       <View style={styles.feedGrid}>
@@ -938,11 +990,11 @@ export default function App() {
             style={styles.feedAction}
             onPress={() => handleOpenMap(selectedHomeSpot.mapUrl, selectedHomeSpot)}
           >
-            <Text style={styles.feedActionText}>Abrir mapa</Text>
+            <Text style={styles.feedActionText}>{uiText.openMap}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(selectedHomeSpot)}>
             <Text style={styles.secondaryActionText}>
-              {savedSpotIds.includes(selectedHomeSpot.id) ? "Guardado" : "Guardar"}
+              {savedSpotIds.includes(selectedHomeSpot.id) ? uiText.saved : uiText.save}
             </Text>
           </TouchableOpacity>
         </View>
@@ -1030,17 +1082,17 @@ export default function App() {
   const renderSearch = () => (
     <>
       <View style={styles.searchCard}>
-        <Text style={styles.searchTitle}>Buscar spots</Text>
+        <Text style={styles.searchTitle}>{uiText.searchSpots}</Text>
         <TextInput
           value={searchText}
           onChangeText={setSearchText}
-          placeholder="Buscar por nombre..."
+          placeholder={uiText.searchByName}
           placeholderTextColor={themedPlaceholderColor}
           style={[styles.searchInput, themedInputStyle]}
         />
 
         <View style={styles.filterBlock}>
-          <Text style={styles.filterTitle}>Provincia</Text>
+          <Text style={styles.filterTitle}>{uiText.province}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {provinces.map((province) => (
               <TouchableOpacity
@@ -1065,7 +1117,7 @@ export default function App() {
         </View>
 
         <View style={styles.filterBlock}>
-          <Text style={styles.filterTitle}>Tipo de spot</Text>
+          <Text style={styles.filterTitle}>{uiText.spotType}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {spotTypes.map((type) => (
               <TouchableOpacity
@@ -1091,14 +1143,14 @@ export default function App() {
           onPress={handleNearbyToggle}
         >
           <Text style={[styles.nearbyText, nearbyOnly && styles.nearbyTextActive]}>
-            Recomendaciones cerca de ti
+            {uiText.nearbyToggle}
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Resultados</Text>
-        <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredSpots.length} encontrados</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.results}</Text>
+        <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredSpots.length} {uiText.foundCount}</Text>
       </View>
 
       {filteredSpots.map((spot) => (
@@ -1112,11 +1164,11 @@ export default function App() {
             <Text style={styles.resultDetail}>{spot.province} · {spot.type}</Text>
             <View style={styles.feedFooterActions}>
               <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
-                <Text style={styles.feedActionText}>Abrir mapa</Text>
+                <Text style={styles.feedActionText}>{uiText.openMap}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
                 <Text style={styles.secondaryActionText}>
-                  {savedSpotIds.includes(spot.id) ? "Guardado" : "Guardar"}
+                  {savedSpotIds.includes(spot.id) ? uiText.saved : uiText.save}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1125,7 +1177,7 @@ export default function App() {
       ))}
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Cerca de ti</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.nearYou}</Text>
         <Text style={[styles.sectionCount, { color: theme.muted }]}>{nearbyProvince}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -1138,13 +1190,13 @@ export default function App() {
       </ScrollView>
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Buscar creadores</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.searchCreators}</Text>
         <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredCreators.length}</Text>
       </View>
       <TextInput
         value={creatorSearchText}
         onChangeText={setCreatorSearchText}
-        placeholder="Buscar perfiles de creadores..."
+        placeholder={uiText.searchCreatorsPlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle]}
       />
@@ -1287,25 +1339,25 @@ export default function App() {
 
   const renderAddSpot = () => (
     <View style={styles.addCard}>
-      <Text style={styles.searchTitle}>Agregar nuevo spot</Text>
+      <Text style={styles.searchTitle}>{uiText.addSpot}</Text>
       <TextInput
         value={newSpot.name}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, name: value }))}
-        placeholder="Nombre del spot"
+        placeholder={uiText.spotNamePlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle]}
       />
       <TextInput
         value={newSpot.description}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, description: value }))}
-        placeholder="Descripción corta"
+        placeholder={uiText.spotDescriptionPlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.textArea]}
         multiline
       />
 
       <View style={styles.filterBlock}>
-        <Text style={styles.filterTitle}>Provincia</Text>
+        <Text style={styles.filterTitle}>{uiText.province}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {provinces.filter((province) => province !== "Todas").map((province) => (
             <TouchableOpacity
@@ -1327,7 +1379,7 @@ export default function App() {
       </View>
 
       <View style={styles.filterBlock}>
-        <Text style={styles.filterTitle}>Tipo de spot</Text>
+          <Text style={styles.filterTitle}>{uiText.spotType}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {spotTypes.filter((type) => type !== "Todos").map((type) => (
             <TouchableOpacity
@@ -1349,7 +1401,7 @@ export default function App() {
       </View>
 
       <View style={styles.filterBlock}>
-        <Text style={styles.filterTitle}>Características del spot</Text>
+        <Text style={styles.filterTitle}>{uiText.spotFeatures}</Text>
         <View style={styles.addFeatureGrid}>
           {spotFeatureOptions.map((feature) => {
             const isSelected = newSpot.features.includes(feature.key);
@@ -1375,15 +1427,15 @@ export default function App() {
       <TextInput
         value={newSpot.locationLabel}
         onChangeText={(value) => setNewSpot((current) => ({ ...current, locationLabel: value }))}
-        placeholder="Nombre de ubicación (ej. Mirador de Orosi)"
+        placeholder={uiText.locationNamePlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
 
       <View style={styles.mapHeaderRow}>
-        <Text style={styles.filterTitle}>Ubicación exacta del spot</Text>
+        <Text style={styles.filterTitle}>{uiText.exactLocation}</Text>
         <TouchableOpacity style={styles.useLocationButton} onPress={useCurrentLocation}>
-          <Text style={styles.useLocationButtonText}>Usar mi ubicación</Text>
+          <Text style={styles.useLocationButtonText}>{uiText.useMyLocation}</Text>
         </TouchableOpacity>
       </View>
 
@@ -1406,11 +1458,11 @@ export default function App() {
           handleOpenMap(`https://maps.google.com/?q=${selectedLocation.latitude},${selectedLocation.longitude}`)
         }
       >
-        <Text style={styles.nearbyText}>Abrir ubicación seleccionada en Google Maps</Text>
+        <Text style={styles.nearbyText}>{uiText.openSelectedMap}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickImageFromGallery}>
-        <Text style={styles.uploadButtonText}>Cargar fotos del spot (máximo 10)</Text>
+        <Text style={styles.uploadButtonText}>{uiText.uploadSpotPhotos}</Text>
       </TouchableOpacity>
       {newSpot.spotPhotos.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoPreviewRow}>
@@ -1421,42 +1473,42 @@ export default function App() {
       ) : null}
 
       <TouchableOpacity style={[styles.feedAction, styles.submitButton]} onPress={handleCreateSpot}>
-        <Text style={styles.feedActionText}>Guardar spot</Text>
+        <Text style={styles.feedActionText}>{uiText.saveSpot}</Text>
       </TouchableOpacity>
     </View>
   );
 
   const renderProfileEditor = () => (
     <View style={styles.profileEditorCard}>
-      <Text style={styles.searchTitle}>Tu perfil</Text>
+      <Text style={styles.searchTitle}>{uiText.yourProfile}</Text>
       <View style={styles.profilePreviewRow}>
         <Image
           source={{ uri: profileForm.avatarUrl || fallbackImageUrl }}
           style={styles.profilePreviewAvatar}
         />
         <TouchableOpacity style={styles.uploadButton} onPress={pickProfileAvatar}>
-          <Text style={styles.uploadButtonText}>Cambiar foto de perfil</Text>
+          <Text style={styles.uploadButtonText}>{uiText.changeProfilePhoto}</Text>
         </TouchableOpacity>
       </View>
 
       <TextInput
         value={profileForm.fullName}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, fullName: value }))}
-        placeholder="Nombre completo"
+        placeholder={uiText.fullNamePlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
       <TextInput
         value={profileForm.username}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, username: value }))}
-        placeholder="Usuario (@tu_usuario)"
+        placeholder={uiText.usernamePlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
       />
       <TextInput
         value={profileForm.bio}
         onChangeText={(value) => setProfileForm((current) => ({ ...current, bio: value }))}
-        placeholder="Cuéntanos sobre ti..."
+        placeholder={uiText.aboutYouPlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.textArea]}
         multiline
@@ -1465,7 +1517,7 @@ export default function App() {
       <View style={styles.profileGalleryHeader}>
         <Text style={styles.filterTitle}>Tus fotos ({profileForm.photos.length})</Text>
         <TouchableOpacity style={styles.useLocationButton} onPress={addPhotoToProfile}>
-          <Text style={styles.useLocationButtonText}>Agregar foto</Text>
+          <Text style={styles.useLocationButtonText}>{uiText.addPhoto}</Text>
         </TouchableOpacity>
       </View>
 
@@ -1480,7 +1532,7 @@ export default function App() {
       )}
 
       <TouchableOpacity style={[styles.feedAction, styles.submitButton]} onPress={saveProfile}>
-        <Text style={styles.feedActionText}>Guardar perfil</Text>
+        <Text style={styles.feedActionText}>{uiText.saveProfile}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -1604,7 +1656,7 @@ export default function App() {
                   style={styles.feedAction}
                   onPress={() => handleOpenMap(spot.mapUrl, spot)}
                 >
-                  <Text style={styles.feedActionText}>Abrir mapa</Text>
+                  <Text style={styles.feedActionText}>{uiText.openMap}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -1709,7 +1761,7 @@ export default function App() {
           </View>
         ))
       ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Todavía no has visto spots recientemente.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noRecentViewed}</Text>
       )}
 
       <View style={styles.profileGalleryHeader}>
@@ -1723,13 +1775,13 @@ export default function App() {
               <Text style={[styles.resultName, { color: theme.text }]}>{spot.name}</Text>
               <Text style={[styles.resultDetail, { color: theme.muted }]}>{spot.province} · {spot.type}</Text>
               <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
-                <Text style={styles.feedActionText}>Abrir mapa</Text>
+                <Text style={styles.feedActionText}>{uiText.openMap}</Text>
               </TouchableOpacity>
             </View>
           </View>
         ))
       ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes spots guardados todavía.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noSavedYet}</Text>
       )}
     </View>
   );
@@ -1737,8 +1789,8 @@ export default function App() {
 
   const renderFavorites = () => (
     <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-      <Text style={[styles.searchTitle, { color: theme.text }]}>Favoritos</Text>
-      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>Spots guardados ({savedSpots.length})</Text>
+      <Text style={[styles.searchTitle, { color: theme.text }]}>{uiText.favorites}</Text>
+      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>{uiText.savedSpotsCount} ({savedSpots.length})</Text>
       {savedSpots.length ? (
         savedSpots.map((spot) => (
           <TouchableOpacity
@@ -1754,15 +1806,15 @@ export default function App() {
           </TouchableOpacity>
         ))
       ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes spots favoritos todavía.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noFavoritesYet}</Text>
       )}
     </View>
   );
 
   const renderNotifications = () => (
     <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
-      <Text style={[styles.searchTitle, { color: theme.text }]}>Centro de notificaciones</Text>
-      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>Última actividad reciente</Text>
+      <Text style={[styles.searchTitle, { color: theme.text }]}>{uiText.notificationsCenter}</Text>
+      <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 12 }]}>{uiText.latestActivity}</Text>
       {viewedSpots.length ? (
         viewedSpots.slice(0, 10).map((spot) => (
           <TouchableOpacity
@@ -1770,12 +1822,12 @@ export default function App() {
             style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}
             onPress={() => openHomeSpotDetail(spot, "notificaciones")}
           >
-            <Text style={[styles.activityMessage, { color: theme.text }]}>Visitaste: {spot.name}</Text>
+            <Text style={[styles.activityMessage, { color: theme.text }]}>{uiText.visitedLabel}: {spot.name}</Text>
             <Text style={[styles.activityDate, { color: theme.muted }]}>{spot.dateLabel}</Text>
           </TouchableOpacity>
         ))
       ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>No tienes notificaciones por ahora.</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noNotificationsYet}</Text>
       )}
     </View>
   );
@@ -1793,7 +1845,7 @@ export default function App() {
             <Image source={{ uri: appLogoDataUri }} style={styles.headerLogo} />
             <View>
             <Text style={styles.headerTitle}>Spoteando</Text>
-            <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>Costa Rica</Text>
+            <Text style={[styles.headerSubtitle, { color: settings.darkMode ? "#d6d9e0" : "#ffe5e5" }]}>{uiText.headerCountry}</Text>
             </View>
           </View>
           <View style={styles.headerActions}>
@@ -1828,25 +1880,25 @@ export default function App() {
       <View style={[styles.bottomNav, { backgroundColor: theme.nav, borderTopColor: theme.border }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("home")}>
           <Ionicons name="home-outline" size={22} color={activeTab === "home" ? "#d62828" : "#6b7280"} />
-          <Text style={activeTab === "home" ? styles.navTextActive : styles.navText}>Home</Text>
+          <Text style={activeTab === "home" ? styles.navTextActive : styles.navText}>{uiText.navHome}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("buscar")}>
           <Ionicons name="search-outline" size={22} color={activeTab === "buscar" ? "#d62828" : "#6b7280"} />
-          <Text style={activeTab === "buscar" ? styles.navTextActive : styles.navText}>Buscar</Text>
+          <Text style={activeTab === "buscar" ? styles.navTextActive : styles.navText}>{uiText.navSearch}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navAddWrapper} onPress={() => setActiveTab("agregar")}>
           <View style={styles.navAddButton}>
             <Text style={styles.navAddIcon}>＋</Text>
           </View>
-          <Text style={styles.navAddLabel}>Agregar</Text>
+          <Text style={styles.navAddLabel}>{uiText.navAdd}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("perfil")}>
           <Ionicons name="person-outline" size={22} color={activeTab === "perfil" ? "#d62828" : "#6b7280"} />
-          <Text style={activeTab === "perfil" ? styles.navTextActive : styles.navText}>Perfil</Text>
+          <Text style={activeTab === "perfil" ? styles.navTextActive : styles.navText}>{uiText.navProfile}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("config")}>
           <Ionicons name="settings-outline" size={22} color={activeTab === "config" ? "#d62828" : "#6b7280"} />
-          <Text style={activeTab === "config" ? styles.navTextActive : styles.navText}>Config.</Text>
+          <Text style={activeTab === "config" ? styles.navTextActive : styles.navText}>{uiText.navConfig}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
