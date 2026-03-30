@@ -6,6 +6,10 @@
   "scripts": {
     "check:conflicts": "node scripts/check-merge-conflicts.js",
     "fix:conflicts": "node scripts/check-merge-conflicts.js --fix",
+    "prestart": "npm run check:conflicts",
+    "preandroid": "npm run check:conflicts",
+    "preios": "npm run check:conflicts",
+    "preweb": "npm run check:conflicts",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",

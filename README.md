@@ -51,6 +51,14 @@ Este comando también limpia imports duplicados dentro de bloques `import { ... 
 
 3. Conserva solo el bloque de código correcto y vuelve a correr la app.
 
+4. Si ya corregiste el archivo pero el error persiste, limpia caché de Metro:
+
+```bash
+npm run start -- --clear
+```
+
+> Nota: desde ahora `npm run start`, `npm run android`, `npm run ios` y `npm run web` ejecutan primero `npm run check:conflicts` para detectar este problema antes de abrir Expo.
+
 ## Firebase (almacenamiento de estado)
 Configura estas variables de entorno para habilitar Firestore en Expo:
 
