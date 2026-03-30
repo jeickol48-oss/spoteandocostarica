@@ -154,7 +154,10 @@ export default function App() {
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
   const [detailSourceTab, setDetailSourceTab] = useState("home");
   const [selectedCreator, setSelectedCreator] = useState(null);
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-algkpz
   const [creatorSourceTab, setCreatorSourceTab] = useState("buscar");
+=======
+>>>>>>> main
   const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
@@ -572,9 +575,14 @@ export default function App() {
     registerViewedSpot(normalized);
   };
 
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-algkpz
   const openCreatorDetail = (creator, sourceTab = activeTab) => {
     setSelectedCreator(creator);
     setCreatorSourceTab(sourceTab);
+=======
+  const openCreatorDetail = (creator) => {
+    setSelectedCreator(creator);
+>>>>>>> main
     setCreatorSpotSort("popular");
     setActiveTab("creador");
   };
@@ -1366,7 +1374,11 @@ export default function App() {
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.postHeaderRow}>
           <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>Perfil del creador</Text>
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-algkpz
           <TouchableOpacity onPress={() => setActiveTab(creatorSourceTab || "buscar")} style={styles.closeButton}>
+=======
+          <TouchableOpacity onPress={() => setActiveTab("buscar")} style={styles.closeButton}>
+>>>>>>> main
             <Text style={styles.closeButtonText}>←</Text>
           </TouchableOpacity>
         </View>
@@ -1745,7 +1757,11 @@ export default function App() {
                     bio: "Creador de spots",
                     avatarUrl: fallbackImageUrl,
                   };
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-algkpz
                   openCreatorDetail(creatorProfile, "perfil");
+=======
+                  openCreatorDetail(creatorProfile);
+>>>>>>> main
                 }}
               >
                 <Image
