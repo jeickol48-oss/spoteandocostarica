@@ -154,9 +154,7 @@ export default function App() {
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
   const [detailSourceTab, setDetailSourceTab] = useState("home");
   const [selectedCreator, setSelectedCreator] = useState(null);
-  const [creatorSourceTab, setCreatorSourceTab] = useState("buscar");
-  const [creatorSourceTab, setCreatorSourceTab] = useState("buscar");
-
+  const [creatorReturnTab, setCreatorReturnTab] = useState("buscar");
   const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
@@ -576,11 +574,7 @@ export default function App() {
 
   const openCreatorDetail = (creator, sourceTab = activeTab) => {
     setSelectedCreator(creator);
-    setCreatorSourceTab(sourceTab);
-  const openCreatorDetail = (creator, sourceTab = activeTab) => {
-    setSelectedCreator(creator);
-    setCreatorSourceTab(sourceTab);
-
+    setCreatorReturnTab(sourceTab);
     setCreatorSpotSort("popular");
     setActiveTab("creador");
   };
@@ -1372,9 +1366,7 @@ export default function App() {
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.postHeaderRow}>
           <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>Perfil del creador</Text>
-          <TouchableOpacity onPress={() => setActiveTab(creatorSourceTab || "buscar")} style={styles.closeButton}>
-          <TouchableOpacity onPress={() => setActiveTab(creatorSourceTab || "buscar")} style={styles.closeButton}>
-
+          <TouchableOpacity onPress={() => setActiveTab(creatorReturnTab || "buscar")} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>←</Text>
           </TouchableOpacity>
         </View>
@@ -1754,8 +1746,6 @@ export default function App() {
                     avatarUrl: fallbackImageUrl,
                   };
                   openCreatorDetail(creatorProfile, "perfil");
-                  openCreatorDetail(creatorProfile, "perfil");
-
                 }}
               >
                 <Image
