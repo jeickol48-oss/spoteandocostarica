@@ -1127,6 +1127,15 @@ export default function App() {
               <Text style={styles.closeButtonText}>←</Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.postHeaderActions}>
+            <TouchableOpacity style={styles.reportIconButton} onPress={() => handleReportSpot(selectedHomeSpot)}>
+              <Ionicons name="flag-outline" size={16} color="#b91c1c" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab(detailSourceTab || "home"); }} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>←</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
 
         <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
@@ -1169,6 +1178,7 @@ export default function App() {
               {savedSpotIds.includes(selectedHomeSpot.id) ? uiText.saved : uiText.save}
             </Text>
           </TouchableOpacity>
+
         </View>
 
         {getSpotFeatures(selectedHomeSpot).length ? (
@@ -2280,6 +2290,7 @@ const styles = StyleSheet.create({
     color: "#7a1c1c",
     fontWeight: "700",
   },
+
   postOverlay: {
     position: "absolute",
     top: 0,
@@ -2328,6 +2339,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   closeButton: {
     width: 30,
     height: 30,
