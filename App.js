@@ -1110,32 +1110,15 @@ export default function App() {
           <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>
             {selectedHomeSpot.name}
           </Text>
-          <View style={styles.postHeaderActions}>
-            <TouchableOpacity
-              style={styles.reportIconButton}
-              onPress={() => handleReportSpot(selectedHomeSpot)}
-            >
-              <Ionicons name="flag-outline" size={16} color="#b91c1c" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedPhotoIndex(null);
-                setActiveTab(detailSourceTab || "home");
-              }}
-              style={styles.closeButton}
-            >
-              <Text style={styles.closeButtonText}>←</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.postHeaderActions}>
-            <TouchableOpacity style={styles.reportIconButton} onPress={() => handleReportSpot(selectedHomeSpot)}>
-              <Ionicons name="flag-outline" size={16} color="#b91c1c" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab(detailSourceTab || "home"); }} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>←</Text>
-            </TouchableOpacity>
-          </View>
-
+          <TouchableOpacity
+            onPress={() => {
+              setSelectedPhotoIndex(null);
+              setActiveTab(detailSourceTab || "home");
+            }}
+            style={styles.closeButton}
+          >
+            <Text style={styles.closeButtonText}>←</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
@@ -1178,7 +1161,6 @@ export default function App() {
               {savedSpotIds.includes(selectedHomeSpot.id) ? uiText.saved : uiText.save}
             </Text>
           </TouchableOpacity>
-
         </View>
 
         {getSpotFeatures(selectedHomeSpot).length ? (
@@ -1197,6 +1179,10 @@ export default function App() {
 
         <View style={styles.profileGalleryHeader}>
           <Text style={[styles.filterTitle, { color: theme.text }]}>Comentarios de visitantes ({comments.length})</Text>
+          <TouchableOpacity style={styles.reportLinkButton} onPress={() => handleReportSpot(selectedHomeSpot)}>
+            <Ionicons name="flag-outline" size={14} color="#b91c1c" />
+            <Text style={styles.reportLinkText}>Reportar spot</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.commentComposerRow}>
           <TextInput
@@ -2290,7 +2276,6 @@ const styles = StyleSheet.create({
     color: "#7a1c1c",
     fontWeight: "700",
   },
-
   postOverlay: {
     position: "absolute",
     top: 0,
@@ -2324,22 +2309,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  postHeaderActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  reportIconButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#fecaca",
-    backgroundColor: "#fff5f5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
   closeButton: {
     width: 30,
     height: 30,
@@ -2387,6 +2356,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  reportLinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "#fff5f5",
+  },
+  reportLinkText: {
+    color: "#b91c1c",
+    fontSize: 11,
+    fontWeight: "700",
   },
   commentInput: {
     flex: 1,
