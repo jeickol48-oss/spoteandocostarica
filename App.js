@@ -170,6 +170,7 @@ export default function App() {
     "4": [{ id: "c5", user: "@CaribeLover", text: "Ambiente super chill y buena comida." }],
     "5": [{ id: "c6", user: "@SJWalks", text: "Perfecto para ir en familia." }],
   });
+  const [contentReports, setContentReports] = useState([]);
   const [commentLikes, setCommentLikes] = useState({});
   const [commentReplies, setCommentReplies] = useState({});
   const [replyDraftByComment, setReplyDraftByComment] = useState({});
@@ -519,6 +520,9 @@ export default function App() {
         if (remote.socialGraph) {
           setSocialGraph(remote.socialGraph);
         }
+        if (Array.isArray(remote.contentReports)) {
+          setContentReports(remote.contentReports);
+        }
         if (typeof remote.nearbyProvince === "string" && remote.nearbyProvince.trim()) {
           setNearbyProvince(remote.nearbyProvince);
         }
@@ -549,6 +553,7 @@ export default function App() {
           settings,
           spotComments,
           socialGraph,
+          contentReports,
           nearbyProvince,
         });
       } catch (error) {
@@ -564,6 +569,7 @@ export default function App() {
     savedSpotIds,
     settings,
     socialGraph,
+    contentReports,
     spotComments,
     spots,
     viewedSpots,
@@ -672,6 +678,57 @@ export default function App() {
       ...current,
       [commentId]: false,
     }));
+  };
+
+  const registerContentReport = ({ type, targetId, reason, preview }) => {
+    const reporter = normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante";
+    setContentReports((current) => [
+      {
+        id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        type,
+        targetId,
+        reason,
+        preview,
+        reporter,
+        createdAt: new Date().toISOString(),
+        status: "pendiente",
+      },
+      ...current,
+    ]);
+    Alert.alert("Reporte enviado", "Gracias. Revisaremos este contenido pronto.");
+  };
+
+  const openReportReasonPicker = (onSelectReason) => {
+    Alert.alert("Reportar contenido", "Selecciona el motivo del reporte.", [
+      { text: "Spam", onPress: () => onSelectReason("Spam") },
+      { text: "Contenido ofensivo", onPress: () => onSelectReason("Contenido ofensivo") },
+      { text: "Información engañosa", onPress: () => onSelectReason("Información engañosa") },
+      { text: "Cancelar", style: "cancel" },
+    ]);
+  };
+
+  const handleReportSpot = (spot) => {
+    if (!spot?.id) return;
+    openReportReasonPicker((reason) =>
+      registerContentReport({
+        type: "spot",
+        targetId: spot.id,
+        reason,
+        preview: spot.name,
+      })
+    );
+  };
+
+  const handleReportComment = (comment, spotId) => {
+    if (!comment?.id) return;
+    openReportReasonPicker((reason) =>
+      registerContentReport({
+        type: "comentario",
+        targetId: `${spotId}:${comment.id}`,
+        reason,
+        preview: comment.text,
+      })
+    );
   };
 
   const filteredSpots = useMemo(() => {
@@ -1096,6 +1153,9 @@ export default function App() {
               {savedSpotIds.includes(selectedHomeSpot.id) ? uiText.saved : uiText.save}
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.reportAction} onPress={() => handleReportSpot(selectedHomeSpot)}>
+            <Text style={styles.reportActionText}>Reportar</Text>
+          </TouchableOpacity>
         </View>
 
         {getSpotFeatures(selectedHomeSpot).length ? (
@@ -1148,6 +1208,13 @@ export default function App() {
                   <TouchableOpacity style={styles.commentActionButton} onPress={() => toggleReplyComposer(comment.id)}>
                     <Ionicons name="chatbox-ellipses-outline" size={15} color={theme.muted} />
                     <Text style={[styles.commentActionText, { color: theme.muted }]}>Responder</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.commentActionButton}
+                    onPress={() => handleReportComment(comment, selectedHomeSpot.id)}
+                  >
+                    <Ionicons name="flag-outline" size={15} color={theme.muted} />
+                    <Text style={[styles.commentActionText, { color: theme.muted }]}>Reportar</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -1949,6 +2016,31 @@ export default function App() {
       ) : (
         <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noSavedYet}</Text>
       )}
+
+      <View style={styles.profileGalleryHeader}>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>
+          Moderación y reportes ({contentReports.length})
+        </Text>
+      </View>
+      {contentReports.length ? (
+        contentReports.slice(0, 5).map((report) => (
+          <View
+            key={report.id}
+            style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}
+          >
+            <Text style={[styles.activityMessage, { color: theme.text }]}>
+              {report.type === "spot" ? "Spot reportado" : "Comentario reportado"} · {report.reason}
+            </Text>
+            <Text style={[styles.activityDate, { color: theme.muted }]}>
+              {report.preview} · por {report.reporter}
+            </Text>
+          </View>
+        ))
+      ) : (
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
+          Aún no hay reportes registrados.
+        </Text>
+      )}
     </View>
   );
 
@@ -2173,6 +2265,19 @@ const styles = StyleSheet.create({
   secondaryActionText: {
     fontSize: 11,
     color: "#7a1c1c",
+    fontWeight: "700",
+  },
+  reportAction: {
+    borderWidth: 1,
+    borderColor: "#ef4444",
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#fff5f5",
+  },
+  reportActionText: {
+    color: "#b91c1c",
+    fontSize: 12,
     fontWeight: "700",
   },
   postOverlay: {
