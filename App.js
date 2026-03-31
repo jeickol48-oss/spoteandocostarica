@@ -393,6 +393,25 @@ export default function App() {
   };
 
   const toggleFollowUser = (targetUsername) => {
+    const hasSavedProfile = Boolean(savedProfile?.username?.trim());
+    if (!hasSavedProfile) {
+      Alert.alert(
+        "Debes crear tu perfil",
+        "Para seguir usuarios primero debes crear y guardar tu perfil.",
+        [
+          { text: "Quitar", style: "cancel" },
+          {
+            text: "Ir a crear perfil",
+            onPress: () => {
+              setIsProfileEditMode(true);
+              setActiveTab("perfil");
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     if (!targetUsername || targetUsername === currentUsername) return;
 
     setSocialGraph((current) => {
