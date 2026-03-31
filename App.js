@@ -1145,6 +1145,12 @@ export default function App() {
 
     const coordinate = getSpotCoordinate(selectedHomeSpot);
     const comments = spotComments[selectedHomeSpot.id] || [];
+    const creatorFromSpot = {
+      username: selectedHomeSpot.user,
+      fullName: selectedHomeSpot.user,
+      bio: "Creador de spots",
+      avatarUrl: selectedHomeSpot.imageUrl,
+    };
 
     return (
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
@@ -1164,9 +1170,14 @@ export default function App() {
         </View>
 
         <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
-        <Text style={[styles.postMeta, { color: theme.muted }]}>
-          {uiText.spotType}: {getSpotTypeLabel(selectedHomeSpot.type)} · {isEnglish ? "Creator" : "Creador"}: {selectedHomeSpot.user}
-        </Text>
+        <View style={styles.postMetaInlineRow}>
+          <Text style={[styles.postMeta, { color: theme.muted, marginTop: 0 }]}>
+            {uiText.spotType}: {getSpotTypeLabel(selectedHomeSpot.type)} · {isEnglish ? "Creator" : "Creador"}:
+          </Text>
+          <TouchableOpacity onPress={() => openCreatorDetail(creatorFromSpot, "detalle")}>
+            <Text style={styles.postMetaCreatorLink}> {selectedHomeSpot.user}</Text>
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.postDescription, { color: theme.text }]}>{selectedHomeSpot.description}</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
@@ -2369,6 +2380,17 @@ const styles = StyleSheet.create({
     marginTop: 6,
     color: "#6b7280",
     fontSize: 12,
+  },
+  postMetaInlineRow: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  postMetaCreatorLink: {
+    color: "#7a1c1c",
+    fontSize: 12,
+    fontWeight: "700",
   },
   postDescription: {
     marginTop: 10,
