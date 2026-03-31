@@ -1108,9 +1108,20 @@ export default function App() {
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}> 
         <View style={styles.postHeaderRow}>
           <Text style={[styles.searchTitle, { color: theme.text, flex: 1 }]}>{selectedHomeSpot.name}</Text>
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-glfcgd
+          <View style={styles.postHeaderActions}>
+            <TouchableOpacity style={styles.reportIconButton} onPress={() => handleReportSpot(selectedHomeSpot)}>
+              <Ionicons name="flag-outline" size={16} color="#b91c1c" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab(detailSourceTab || "home"); }} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>←</Text>
+            </TouchableOpacity>
+          </View>
+=======
           <TouchableOpacity onPress={() => { setSelectedPhotoIndex(null); setActiveTab(detailSourceTab || "home"); }} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>←</Text>
           </TouchableOpacity>
+>>>>>>> main
         </View>
 
         <Text style={[styles.postMeta, { color: theme.muted }]}>📍 {selectedHomeSpot.location} · {selectedHomeSpot.province}</Text>
@@ -1153,9 +1164,12 @@ export default function App() {
               {savedSpotIds.includes(selectedHomeSpot.id) ? uiText.saved : uiText.save}
             </Text>
           </TouchableOpacity>
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-glfcgd
+=======
           <TouchableOpacity style={styles.reportAction} onPress={() => handleReportSpot(selectedHomeSpot)}>
             <Text style={styles.reportActionText}>Reportar</Text>
           </TouchableOpacity>
+>>>>>>> main
         </View>
 
         {getSpotFeatures(selectedHomeSpot).length ? (
@@ -2267,6 +2281,8 @@ const styles = StyleSheet.create({
     color: "#7a1c1c",
     fontWeight: "700",
   },
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-glfcgd
+=======
   reportAction: {
     borderWidth: 1,
     borderColor: "#ef4444",
@@ -2280,6 +2296,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
+>>>>>>> main
   postOverlay: {
     position: "absolute",
     top: 0,
@@ -2313,6 +2330,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+<<<<<<< codex/create-location-sharing-app-for-costa-rica-glfcgd
+  postHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  reportIconButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    backgroundColor: "#fff5f5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+=======
+>>>>>>> main
   closeButton: {
     width: 30,
     height: 30,
