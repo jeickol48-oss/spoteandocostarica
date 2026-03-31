@@ -621,22 +621,28 @@ export default function App() {
     ]);
   };
 
-  const handleAddComment = () => {
-    if (!savedProfile?.username?.trim()) {
-      Alert.alert(
-        "Debes crear tu perfil",
-        "Para comentar primero debes crear y guardar tu perfil.",
-        [
-          { text: "Quitar", style: "cancel" },
-          {
-            text: "Ir a crear perfil",
-            onPress: () => {
-              setIsProfileEditMode(true);
-              setActiveTab("perfil");
-            },
+  const requireSavedProfile = (message) => {
+    if (savedProfile?.username?.trim()) return true;
+
+    Alert.alert(
+      "Debes crear tu perfil",
+      message,
+      [
+        { text: "Quitar", style: "cancel" },
+        {
+          text: "Ir a crear perfil",
+          onPress: () => {
+            setIsProfileEditMode(true);
+            setActiveTab("perfil");
           },
-        ]
-      );
+        },
+      ]
+    );
+    return false;
+  };
+
+  const handleAddComment = () => {
+    if (!requireSavedProfile("Para comentar primero debes crear y guardar tu perfil.")) {
       return;
     }
 
@@ -654,6 +660,12 @@ export default function App() {
   };
 
   const toggleCommentLike = (commentId) => {
+    if (
+      !requireSavedProfile("Para dar like en comentarios primero debes crear y guardar tu perfil.")
+    ) {
+      return;
+    }
+
     setCommentLikes((current) => ({
       ...current,
       [commentId]: current[commentId] ? current[commentId] - 1 : 1,
@@ -661,21 +673,7 @@ export default function App() {
   };
 
   const toggleReplyComposer = (commentId) => {
-    if (!savedProfile?.username?.trim()) {
-      Alert.alert(
-        "Debes crear tu perfil",
-        "Para responder comentarios primero debes crear y guardar tu perfil.",
-        [
-          { text: "Quitar", style: "cancel" },
-          {
-            text: "Ir a crear perfil",
-            onPress: () => {
-              setIsProfileEditMode(true);
-              setActiveTab("perfil");
-            },
-          },
-        ]
-      );
+    if (!requireSavedProfile("Para responder comentarios primero debes crear y guardar tu perfil.")) {
       return;
     }
 
@@ -693,21 +691,7 @@ export default function App() {
   };
 
   const handleAddReply = (commentId) => {
-    if (!savedProfile?.username?.trim()) {
-      Alert.alert(
-        "Debes crear tu perfil",
-        "Para responder comentarios primero debes crear y guardar tu perfil.",
-        [
-          { text: "Quitar", style: "cancel" },
-          {
-            text: "Ir a crear perfil",
-            onPress: () => {
-              setIsProfileEditMode(true);
-              setActiveTab("perfil");
-            },
-          },
-        ]
-      );
+    if (!requireSavedProfile("Para responder comentarios primero debes crear y guardar tu perfil.")) {
       return;
     }
 
@@ -1040,6 +1024,10 @@ export default function App() {
   };
 
   const toggleSaveSpot = (spot) => {
+    if (!requireSavedProfile("Para guardar publicaciones primero debes crear y guardar tu perfil.")) {
+      return;
+    }
+
     const normalized = normalizeSpot(spot);
     setSavedSpotIds((current) => {
       const alreadySaved = current.includes(normalized.id);
