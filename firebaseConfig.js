@@ -14,26 +14,49 @@ const getFirebaseSdk = () => {
     const dynamicRequire = Function("moduleName", "return require(moduleName);");
     const appModule = dynamicRequire("firebase/app");
     const firestoreModule = dynamicRequire("firebase/firestore");
-    return { appModule, firestoreModule };
+    const authModule = dynamicRequire("firebase/auth");
+    return { appModule, firestoreModule, authModule };
   } catch (_error) {
     return null;
   }
 };
 
-const getFirestoreDb = () => {
+const getFirebaseApp = () => {
   if (!hasFirebaseConfig) return null;
+  const sdk = getFirebaseSdk();
+  if (!sdk) return null;
+
+  const { appModule } = sdk;
+  return appModule.getApps().length
+    ? appModule.getApp()
+    : appModule.initializeApp(firebaseConfig);
+};
+
+const getFirestoreDb = () => {
+  const app = getFirebaseApp();
+  if (!app) return null;
 
   const sdk = getFirebaseSdk();
   if (!sdk) return null;
 
-  const { appModule, firestoreModule } = sdk;
-  const app = appModule.getApps().length
-    ? appModule.getApp()
-    : appModule.initializeApp(firebaseConfig);
+  const { firestoreModule } = sdk;
 
   return {
     db: firestoreModule.getFirestore(app),
     firestoreModule,
+  };
+};
+
+const getFirebaseAuth = () => {
+  const app = getFirebaseApp();
+  if (!app) return null;
+
+  const sdk = getFirebaseSdk();
+  if (!sdk?.authModule) return null;
+
+  return {
+    auth: sdk.authModule.getAuth(app),
+    authModule: sdk.authModule,
   };
 };
 
@@ -68,4 +91,4 @@ const saveRemoteState = async (payload) => {
   return true;
 };
 
-export { hasFirebaseConfig, loadRemoteState, saveRemoteState };
+export { hasFirebaseConfig, getFirebaseAuth, loadRemoteState, saveRemoteState };

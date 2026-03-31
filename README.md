@@ -73,6 +73,20 @@ EXPO_PUBLIC_FIREBASE_APP_ID=...
 
 El estado principal de la app (spots, perfil guardado, favoritos, comentarios y ajustes) se sincroniza en el documento `appState/main` de Firestore.
 
+### Preconfiguración para autenticación social (Google / Apple)
+Ya quedó preparada la base en `firebaseConfig.js` para usar Firebase Auth (`getFirebaseAuth`) en el siguiente paso de implementación.
+
+Antes de integrar los botones de login social en la UI:
+
+1. En Firebase Console, ve a **Authentication > Sign-in method**.
+2. Habilita los proveedores que usarás (Google y/o Apple).
+3. Verifica que `EXPO_PUBLIC_FIREBASE_*` estén definidos (los de arriba).
+4. Para pruebas limpias en Expo, reinicia Metro con:
+
+```bash
+npm run start -- --clear
+```
+
 ## Próximos pasos sugeridos
 - Subida de imágenes (Firebase Storage/CDN).
 - Autenticación social.
