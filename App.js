@@ -622,6 +622,24 @@ export default function App() {
   };
 
   const handleAddComment = () => {
+    if (!savedProfile?.username?.trim()) {
+      Alert.alert(
+        "Debes crear tu perfil",
+        "Para comentar primero debes crear y guardar tu perfil.",
+        [
+          { text: "Quitar", style: "cancel" },
+          {
+            text: "Ir a crear perfil",
+            onPress: () => {
+              setIsProfileEditMode(true);
+              setActiveTab("perfil");
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     if (!selectedHomeSpot || !commentDraft.trim()) return;
     const newComment = {
       id: `${selectedHomeSpot.id}-${Date.now()}`,
@@ -643,6 +661,24 @@ export default function App() {
   };
 
   const toggleReplyComposer = (commentId) => {
+    if (!savedProfile?.username?.trim()) {
+      Alert.alert(
+        "Debes crear tu perfil",
+        "Para responder comentarios primero debes crear y guardar tu perfil.",
+        [
+          { text: "Quitar", style: "cancel" },
+          {
+            text: "Ir a crear perfil",
+            onPress: () => {
+              setIsProfileEditMode(true);
+              setActiveTab("perfil");
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     setReplyInputVisible((current) => ({
       ...current,
       [commentId]: !current[commentId],
@@ -657,6 +693,24 @@ export default function App() {
   };
 
   const handleAddReply = (commentId) => {
+    if (!savedProfile?.username?.trim()) {
+      Alert.alert(
+        "Debes crear tu perfil",
+        "Para responder comentarios primero debes crear y guardar tu perfil.",
+        [
+          { text: "Quitar", style: "cancel" },
+          {
+            text: "Ir a crear perfil",
+            onPress: () => {
+              setIsProfileEditMode(true);
+              setActiveTab("perfil");
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     const draft = replyDraftByComment[commentId]?.trim();
     if (!selectedHomeSpot || !draft) return;
 
