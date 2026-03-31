@@ -581,7 +581,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    if (activeTab !== "buscar") return;
+    if (!["buscar", "detalle"].includes(activeTab)) return;
     requestAnimationFrame(() => {
       mainScrollRef.current?.scrollTo({ y: 0, animated: false });
     });
