@@ -1505,28 +1505,30 @@ export default function App() {
         </MapView>
       </View>
 
-      {filteredSpots.map((spot) => (
-        <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "buscar")}>
-          <View style={styles.resultImageWrap}>
-            <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
-            {renderSpotFeatureIconsOverlay(spot)}
-          </View>
-          <View style={styles.resultMeta}>
-            <Text style={styles.resultName}>{spot.name}</Text>
-            <Text style={styles.resultDetail}>{spot.province} · {getSpotTypeLabel(spot.type)}</Text>
-            <View style={styles.feedFooterActions}>
-              <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
-                <Text style={styles.feedActionText}>{uiText.openMap}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
-                <Text style={styles.secondaryActionText}>
-                  {savedSpotIds.includes(spot.id) ? uiText.saved : uiText.save}
-                </Text>
-              </TouchableOpacity>
+      <View style={styles.searchResultsList}>
+        {filteredSpots.map((spot) => (
+          <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "buscar")}>
+            <View style={styles.resultImageWrap}>
+              <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
+              {renderSpotFeatureIconsOverlay(spot)}
             </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+            <View style={styles.resultMeta}>
+              <Text style={styles.resultName}>{spot.name}</Text>
+              <Text style={styles.resultDetail}>{spot.province} · {getSpotTypeLabel(spot.type)}</Text>
+              <View style={styles.feedFooterActions}>
+                <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
+                  <Text style={styles.feedActionText}>{uiText.openMap}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
+                  <Text style={styles.secondaryActionText}>
+                    {savedSpotIds.includes(spot.id) ? uiText.saved : uiText.save}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.nearYou}</Text>
@@ -2632,6 +2634,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 200,
     borderRadius: 12,
+  },
+  searchResultsList: {
+    marginTop: 12,
   },
   searchTitle: { fontSize: 18, fontWeight: "700", color: "#7a1c1c", marginBottom: 10 },
   searchInput: {
