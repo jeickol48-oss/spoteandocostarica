@@ -1452,10 +1452,14 @@ export default function App() {
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {nearbyRecommendations.map((spot) => (
-          <View key={`near-${spot.id}`} style={styles.nearbyCard}>
+          <TouchableOpacity
+            key={`near-${spot.id}`}
+            style={styles.nearbyCard}
+            onPress={() => openHomeSpotDetail(spot, "buscar")}
+          >
             <Image source={{ uri: spot.imageUrl }} style={styles.nearbyImage} />
             <Text style={styles.nearbyCardTitle}>{spot.name}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
