@@ -149,6 +149,7 @@ export default function App() {
   const [searchText, setSearchText] = useState("");
   const [provinceFilter, setProvinceFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
+  const [searchFeatureFilter, setSearchFeatureFilter] = useState("all");
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [creatorSearchText, setCreatorSearchText] = useState("");
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
@@ -267,6 +268,9 @@ export default function App() {
     results: isEnglish ? "Results" : "Resultados",
     foundCount: isEnglish ? "found" : "encontrados",
     nearYou: isEnglish ? "Near you" : "Cerca de ti",
+    mapResults: isEnglish ? "Map results" : "Resultados en mapa",
+    mapHint: isEnglish ? "Tap a pin to open spot detail" : "Toca un pin para abrir el detalle del spot",
+    allFeatures: isEnglish ? "All features" : "Todas las características",
     searchCreators: isEnglish ? "Search creators" : "Buscar creadores",
     searchCreatorsPlaceholder: isEnglish ? "Search creator profiles..." : "Buscar perfiles de creadores...",
     openMap: isEnglish ? "Open map" : "Abrir mapa",
@@ -779,8 +783,13 @@ export default function App() {
       )
       .filter((spot) => (provinceFilter === "Todas" ? true : spot.province === provinceFilter))
       .filter((spot) => (typeFilter === "Todos" ? true : spot.type === typeFilter))
+      .filter((spot) =>
+        searchFeatureFilter === "all"
+          ? true
+          : getSpotFeatures(spot).includes(searchFeatureFilter)
+      )
       .filter((spot) => (nearbyOnly ? spot.province === nearbyProvince : true));
-  }, [nearbyOnly, nearbyProvince, provinceFilter, searchText, spots, typeFilter]);
+  }, [nearbyOnly, nearbyProvince, provinceFilter, searchFeatureFilter, searchText, spots, typeFilter]);
 
   const nearbyRecommendations = useMemo(
     () => spots.map(normalizeSpot).filter((spot) => spot.province === nearbyProvince),
@@ -1349,7 +1358,11 @@ export default function App() {
     );
   };
 
-  const renderSearch = () => (
+  const renderSearch = () => {
+    const mapFocusSpot = filteredSpots[0];
+    const mapFocusCoordinate = mapFocusSpot ? getSpotCoordinate(mapFocusSpot) : selectedLocation;
+
+    return (
     <>
       <View style={styles.searchCard}>
         <Text style={styles.searchTitle}>{uiText.searchSpots}</Text>
@@ -1408,6 +1421,44 @@ export default function App() {
           </ScrollView>
         </View>
 
+        <View style={styles.filterBlock}>
+          <Text style={styles.filterTitle}>{uiText.spotFeatures}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              style={[styles.filterChip, searchFeatureFilter === "all" && styles.filterChipActive]}
+              onPress={() => setSearchFeatureFilter("all")}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  searchFeatureFilter === "all" && styles.filterChipTextActive,
+                ]}
+              >
+                {uiText.allFeatures}
+              </Text>
+            </TouchableOpacity>
+            {spotFeatureOptions.map((feature) => (
+              <TouchableOpacity
+                key={`search-feature-${feature.key}`}
+                style={[
+                  styles.filterChip,
+                  searchFeatureFilter === feature.key && styles.filterChipActive,
+                ]}
+                onPress={() => setSearchFeatureFilter(feature.key)}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    searchFeatureFilter === feature.key && styles.filterChipTextActive,
+                  ]}
+                >
+                  {getSpotFeatureLabel(feature.key)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         <TouchableOpacity
           style={[styles.nearbyButton, nearbyOnly && styles.nearbyButtonActive]}
           onPress={handleNearbyToggle}
@@ -1421,6 +1472,29 @@ export default function App() {
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.results}</Text>
         <Text style={[styles.sectionCount, { color: theme.muted }]}>{filteredSpots.length} {uiText.foundCount}</Text>
+      </View>
+
+      <View style={[styles.searchMapCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.mapResults}</Text>
+        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.mapHint}</Text>
+        <MapView
+          style={styles.searchResultsMap}
+          initialRegion={{
+            ...mapFocusCoordinate,
+            latitudeDelta: 0.35,
+            longitudeDelta: 0.35,
+          }}
+        >
+          {filteredSpots.map((spot) => (
+            <Marker
+              key={`search-map-${spot.id}`}
+              coordinate={getSpotCoordinate(spot)}
+              title={spot.name}
+              description={`${spot.province} · ${getSpotTypeLabel(spot.type)}`}
+              onPress={() => openHomeSpotDetail(spot, "buscar")}
+            />
+          ))}
+        </MapView>
       </View>
 
       {filteredSpots.map((spot) => (
@@ -1488,6 +1562,7 @@ export default function App() {
       ))}
     </>
   );
+  };
 
 
   const renderCreatorDetail = () => {
@@ -2535,6 +2610,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f0dada",
     padding: 14,
+  },
+  searchMapCard: {
+    marginTop: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 10,
+    backgroundColor: "#ffffff",
+  },
+  searchResultsMap: {
+    marginTop: 8,
+    width: "100%",
+    height: 200,
+    borderRadius: 12,
   },
   searchTitle: { fontSize: 18, fontWeight: "700", color: "#7a1c1c", marginBottom: 10 },
   searchInput: {
