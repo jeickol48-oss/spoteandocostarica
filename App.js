@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -215,6 +215,7 @@ export default function App() {
   const [connectionTab, setConnectionTab] = useState("followers");
 
   const [isRemoteReady, setIsRemoteReady] = useState(false);
+  const mainScrollRef = useRef(null);
 
   const normalizeUsername = (value) => {
     const clean = value.trim().replace(/^@+/, "");
@@ -578,6 +579,13 @@ export default function App() {
     spots,
     viewedSpots,
   ]);
+
+  useEffect(() => {
+    if (activeTab !== "buscar") return;
+    requestAnimationFrame(() => {
+      mainScrollRef.current?.scrollTo({ y: 0, animated: false });
+    });
+  }, [activeTab]);
 
   const getSpotCoordinate = (spot) => {
     const match = spot?.mapUrl?.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
@@ -2261,6 +2269,7 @@ export default function App() {
       </View>
 
       <ScrollView
+        ref={mainScrollRef}
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
