@@ -393,6 +393,29 @@ export default function App() {
     );
   };
 
+  const renderSpotRatingOverlay = (spotId) => {
+    const average = getSpotAverageRating(spotId);
+    if (!average) return null;
+
+    const fullCaps = Math.floor(average);
+    const hasHalfCap = average - fullCaps >= 0.5;
+
+    return (
+      <View style={styles.spotRatingOverlay}>
+        {Array.from({ length: fullCaps }).map((_, index) => (
+          <Text key={`cap-full-${spotId}-${index}`} style={styles.spotRatingCapEmoji}>
+            🧢
+          </Text>
+        ))}
+        {hasHalfCap ? (
+          <View style={styles.spotHalfCapWrap}>
+            <Text style={styles.spotRatingCapEmoji}>🧢</Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
 
   const currentUsername = useMemo(
     () => normalizeUsername(savedProfile?.username || profileForm.username) || "@tu_usuario",
@@ -1294,6 +1317,7 @@ export default function App() {
               <View style={styles.feedImageWrap}>
                 <Image source={{ uri: s.imageUrl }} style={styles.feedImage} />
                 {renderSpotFeatureIconsOverlay(s)}
+                {renderSpotRatingOverlay(s.id)}
               </View>
               <View style={styles.feedMeta}>
                 <Text style={styles.feedLocation}>📍 {s.location}</Text>
@@ -3013,6 +3037,27 @@ const styles = StyleSheet.create({
     top: 6,
     left: 6,
     flexDirection: "row",
+  },
+  spotRatingOverlay: {
+    position: "absolute",
+    left: 6,
+    bottom: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 250, 250, 0.9)",
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+    borderRadius: 999,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  spotRatingCapEmoji: {
+    fontSize: 11,
+    marginRight: 2,
+  },
+  spotHalfCapWrap: {
+    width: 6,
+    overflow: "hidden",
   },
   spotImageFeatureIconBadge: {
     minWidth: 18,
