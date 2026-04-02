@@ -94,3 +94,12 @@ npm run start -- --clear
 - [x] ~~Búsqueda por filtros y mapas~~.
 - [x] ~~Modo offline para guardar spots favoritos~~.
 - [x] ~~Rankings diarios, semanales y mensuales de spots más visitados~~.
+
+### Nuevas tareas sugeridas para mejorar la app
+- [ ] Sistema de **notificaciones push** (comentarios, seguidores, reportes resueltos).
+- [ ] **Rutas inteligentes**: sugerir spots cercanos según distancia y tipo de preferencia del usuario.
+- [ ] **Puntaje y reseñas por spot** (rating 1–5 + comentarios destacados).
+- [ ] **Panel admin/moderación** con estado de reportes (pendiente, en revisión, resuelto).
+- [ ] **Perfil de creador avanzado** con estadísticas (visitas totales, top spot, crecimiento semanal).
+- [ ] **Compartir spot** a WhatsApp/Instagram con preview y link de mapa.
+- [ ] **Sistema de logros/gamificación** (insignias por explorar provincias, comentar, guardar).
