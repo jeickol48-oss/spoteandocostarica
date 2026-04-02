@@ -399,17 +399,60 @@ export default function App() {
 
     const fullCaps = Math.floor(average);
     const hasHalfCap = average - fullCaps >= 0.5;
+    const choneteSize = 14;
+
+    const ChoneteMini = ({ size = choneteSize }) => (
+      <View
+        style={{
+          width: size * 1.4,
+          height: size,
+          justifyContent: "flex-end",
+          alignItems: "center",
+        }}
+      >
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            width: size * 1.4,
+            height: size * 0.35,
+            borderRadius: 999,
+            backgroundColor: "#efe5cf",
+            borderWidth: 1,
+            borderColor: "#1f2937",
+          }}
+        />
+        <View
+          style={{
+            marginBottom: size * 0.18,
+            width: size * 0.85,
+            height: size * 0.56,
+            borderTopLeftRadius: size * 0.5,
+            borderTopRightRadius: size * 0.5,
+            borderBottomLeftRadius: size * 0.25,
+            borderBottomRightRadius: size * 0.25,
+            backgroundColor: "#efe5cf",
+            borderWidth: 1,
+            borderColor: "#1f2937",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View style={{ width: size * 0.45, height: size * 0.08, borderRadius: 99, backgroundColor: "#1d4ed8" }} />
+          <View style={{ width: size * 0.45, height: size * 0.08, borderRadius: 99, backgroundColor: "#dc2626", marginTop: 1 }} />
+          <View style={{ width: size * 0.45, height: size * 0.08, borderRadius: 99, backgroundColor: "#1d4ed8", marginTop: 1 }} />
+        </View>
+      </View>
+    );
 
     return (
       <View style={styles.spotRatingOverlay}>
         {Array.from({ length: fullCaps }).map((_, index) => (
-          <Text key={`cap-full-${spotId}-${index}`} style={styles.spotRatingCapEmoji}>
-            🧢
-          </Text>
+          <ChoneteMini key={`cap-full-${spotId}-${index}`} />
         ))}
         {hasHalfCap ? (
           <View style={styles.spotHalfCapWrap}>
-            <Text style={styles.spotRatingCapEmoji}>🧢</Text>
+            <ChoneteMini />
           </View>
         ) : null}
       </View>
@@ -1444,7 +1487,14 @@ export default function App() {
                   style={[styles.ratingButton, active && styles.ratingButtonActive]}
                   onPress={() => handleRateSpot(selectedHomeSpot.id, value)}
                 >
-                  <Text style={styles.ratingEmoji}>🧢</Text>
+                  <View style={styles.ratingChoneteIcon}>
+                    <View style={styles.ratingChoneteBrim} />
+                    <View style={styles.ratingChoneteCrown}>
+                      <View style={styles.ratingStripeBlue} />
+                      <View style={styles.ratingStripeRed} />
+                      <View style={styles.ratingStripeBlue} />
+                    </View>
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -2798,8 +2848,48 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffe4e6",
     borderColor: "#d62828",
   },
-  ratingEmoji: {
-    fontSize: 18,
+  ratingChoneteIcon: {
+    width: 24,
+    height: 18,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  ratingChoneteBrim: {
+    position: "absolute",
+    bottom: 0,
+    width: 24,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: "#efe5cf",
+    borderWidth: 1,
+    borderColor: "#1f2937",
+  },
+  ratingChoneteCrown: {
+    marginBottom: 3,
+    width: 14,
+    height: 10,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: "#efe5cf",
+    borderWidth: 1,
+    borderColor: "#1f2937",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ratingStripeBlue: {
+    width: 8,
+    height: 1.5,
+    borderRadius: 99,
+    backgroundColor: "#1d4ed8",
+  },
+  ratingStripeRed: {
+    width: 8,
+    height: 1.5,
+    borderRadius: 99,
+    backgroundColor: "#dc2626",
+    marginVertical: 0.8,
   },
   postPhotosRow: {
     marginTop: 12,
@@ -3051,12 +3141,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
-  spotRatingCapEmoji: {
-    fontSize: 11,
-    marginRight: 2,
-  },
   spotHalfCapWrap: {
-    width: 6,
+    width: 10,
     overflow: "hidden",
   },
   spotImageFeatureIconBadge: {
