@@ -215,6 +215,7 @@ export default function App() {
   });
   const [socialGraph, setSocialGraph] = useState({});
   const [connectionTab, setConnectionTab] = useState("followers");
+  const [moderationFilter, setModerationFilter] = useState("pending");
 
   const [isRemoteReady, setIsRemoteReady] = useState(false);
   const mainScrollRef = useRef(null);
@@ -276,6 +277,10 @@ export default function App() {
     weekly: isEnglish ? "Weekly" : "Semanal",
     monthly: isEnglish ? "Monthly" : "Mensual",
     noRankings: isEnglish ? "No visits yet for this period." : "Aún no hay visitas en este periodo.",
+    moderationPending: isEnglish ? "Pending" : "Pendiente",
+    moderationReview: isEnglish ? "In review" : "En revisión",
+    moderationResolved: isEnglish ? "Resolved" : "Resuelto",
+    noReportsFilter: isEnglish ? "No reports for this status." : "No hay reportes para este estado.",
     mapResults: isEnglish ? "Map results" : "Resultados en mapa",
     mapHint: isEnglish ? "Tap a pin to open spot detail" : "Toca un pin para abrir el detalle del spot",
     allFeatures: isEnglish ? "All features" : "Todas las características",
@@ -302,6 +307,8 @@ export default function App() {
     favorites: isEnglish ? "Favorites" : "Favoritos",
     savedSpotsCount: isEnglish ? "Saved spots" : "Spots guardados",
     notificationsCenter: isEnglish ? "Notifications center" : "Centro de notificaciones",
+    moderationPanel: isEnglish ? "Admin moderation panel" : "Panel admin de moderación",
+    openModerationPanel: isEnglish ? "Open moderation panel" : "Abrir panel de moderación",
     latestActivity: isEnglish ? "Latest recent activity" : "Última actividad reciente",
     visited: isEnglish ? "Visited" : "Visitaste",
     navSearch: isEnglish ? "Search" : "Buscar",
@@ -770,7 +777,7 @@ export default function App() {
         preview,
         reporter,
         createdAt: new Date().toISOString(),
-        status: "pendiente",
+        status: "pending",
       },
       ...current,
     ]);
@@ -2177,6 +2184,74 @@ export default function App() {
     }));
   };
 
+  const updateReportStatus = (reportId, status) => {
+    setContentReports((current) =>
+      current.map((report) =>
+        report.id === reportId ? { ...report, status, reviewedAt: new Date().toISOString() } : report
+      )
+    );
+  };
+
+  const renderAdminModeration = () => {
+    const filteredReports = contentReports.filter((report) =>
+      moderationFilter === "all" ? true : (report.status || "pending") === moderationFilter
+    );
+
+    return (
+      <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <Text style={[styles.searchTitle, { color: theme.text }]}>{uiText.moderationPanel}</Text>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBlock}>
+          {[
+            { key: "all", label: "Todos" },
+            { key: "pending", label: uiText.moderationPending },
+            { key: "review", label: uiText.moderationReview },
+            { key: "resolved", label: uiText.moderationResolved },
+          ].map((option) => (
+            <TouchableOpacity
+              key={`moderation-filter-${option.key}`}
+              style={[styles.filterChip, moderationFilter === option.key && styles.filterChipActive]}
+              onPress={() => setModerationFilter(option.key)}
+            >
+              <Text style={[styles.filterChipText, moderationFilter === option.key && styles.filterChipTextActive]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {filteredReports.length ? (
+          filteredReports.map((report) => (
+            <View
+              key={`admin-report-${report.id}`}
+              style={[styles.activityCard, { backgroundColor: theme.input, borderColor: theme.border }]}
+            >
+              <Text style={[styles.activityMessage, { color: theme.text }]}>
+                {report.type === "spot" ? "Spot reportado" : "Comentario reportado"} · {report.reason}
+              </Text>
+              <Text style={[styles.activityDate, { color: theme.muted }]}>
+                {report.preview} · por {report.reporter}
+              </Text>
+              <View style={styles.feedFooterActions}>
+                <TouchableOpacity style={styles.secondaryAction} onPress={() => updateReportStatus(report.id, "pending")}>
+                  <Text style={styles.secondaryActionText}>{uiText.moderationPending}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.secondaryAction} onPress={() => updateReportStatus(report.id, "review")}>
+                  <Text style={styles.secondaryActionText}>{uiText.moderationReview}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.secondaryAction} onPress={() => updateReportStatus(report.id, "resolved")}>
+                  <Text style={styles.secondaryActionText}>{uiText.moderationResolved}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noReportsFilter}</Text>
+        )}
+      </View>
+    );
+  };
+
   const renderSettings = () => (
     <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <Text style={[styles.searchTitle, { color: theme.text }]}>{uiText.settingsTitle}</Text>
@@ -2243,6 +2318,16 @@ export default function App() {
           thumbColor="#ffffff"
         />
       </View>
+
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: theme.input, borderColor: theme.border }]}
+        onPress={() => setActiveTab("admin")}
+      >
+        <Text style={[styles.settingLabel, { color: theme.text }]}>{uiText.openModerationPanel}</Text>
+        <Text style={[styles.settingValue, { color: settings.darkMode ? "#ff8a8a" : "#d62828" }]}>
+          {contentReports.length}
+        </Text>
+      </TouchableOpacity>
 
       <View style={styles.profileGalleryHeader}>
         <Text style={[styles.filterTitle, { color: theme.text }]}>{uiText.recentActivity}</Text>
@@ -2398,6 +2483,7 @@ export default function App() {
         {activeTab === "config" && renderSettings()}
         {activeTab === "favoritos" && renderFavorites()}
         {activeTab === "notificaciones" && renderNotifications()}
+        {activeTab === "admin" && renderAdminModeration()}
         {activeTab === "creador" && renderCreatorDetail()}
         {activeTab === "detalle" && renderSpotDetail()}
         {activeTab === "galeria" && renderSpotGallery()}
