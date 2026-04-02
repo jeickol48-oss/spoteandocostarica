@@ -1467,10 +1467,18 @@ export default function App() {
         ) : null}
 
         <View style={styles.ratingBlock}>
-          <Text style={[styles.filterTitle, { color: theme.text }]}>Puntaje del spot</Text>
-          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
-            {getSpotAverageRating(selectedHomeSpot.id).toFixed(1)} / 5 · {(spotRatings[selectedHomeSpot.id] || []).length} votos
-          </Text>
+          <View style={styles.ratingHeaderRow}>
+            <View>
+              <Text style={[styles.filterTitle, { color: theme.text }]}>Puntaje del spot</Text>
+              <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
+                {(spotRatings[selectedHomeSpot.id] || []).length} votos
+              </Text>
+            </View>
+            <View style={styles.ratingAverageBadge}>
+              <Text style={styles.ratingAverageValue}>{getSpotAverageRating(selectedHomeSpot.id).toFixed(1)}</Text>
+              <Text style={styles.ratingAverageScale}>/ 5</Text>
+            </View>
+          </View>
           <View style={styles.ratingButtonsRow}>
             {[1, 2, 3, 4, 5].map((value) => {
               const active = value <= getSpotUserRating(selectedHomeSpot.id);
@@ -1492,6 +1500,7 @@ export default function App() {
               );
             })}
           </View>
+          <Text style={styles.ratingHintText}>Tu voto: {getSpotUserRating(selectedHomeSpot.id) || 0}/5</Text>
         </View>
 
         <View style={styles.profileGalleryHeader}>
@@ -2818,28 +2827,54 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 1,
     borderColor: "#f2d4d4",
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 16,
+    padding: 12,
     backgroundColor: "#fffafa",
+  },
+  ratingHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  ratingAverageBadge: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+  },
+  ratingAverageValue: {
+    color: "#7a1c1c",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  ratingAverageScale: {
+    marginLeft: 3,
+    color: "#9ca3af",
+    fontSize: 12,
+    fontWeight: "700",
   },
   ratingButtonsRow: {
     flexDirection: "row",
-    marginTop: 8,
+    marginTop: 10,
+    justifyContent: "space-between",
   },
   ratingButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 50,
+    height: 46,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#f2c7c7",
+    borderColor: "#f2d4d4",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
     backgroundColor: "#ffffff",
   },
   ratingButtonActive: {
-    backgroundColor: "#ffe4e6",
-    borderColor: "#d62828",
+    backgroundColor: "#fff1f2",
+    borderColor: "#be123c",
   },
   ratingChoneteIcon: {
     width: 24,
@@ -2883,6 +2918,13 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     backgroundColor: "#dc2626",
     marginVertical: 0.8,
+  },
+  ratingHintText: {
+    marginTop: 8,
+    color: "#7a1c1c",
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "right",
   },
   postPhotosRow: {
     marginTop: 12,
