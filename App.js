@@ -399,7 +399,7 @@ export default function App() {
 
     const fullCaps = Math.floor(average);
     const hasHalfCap = average - fullCaps >= 0.5;
-    const choneteSize = 14;
+    const choneteSize = 15;
 
     const ChoneteMini = ({ size = choneteSize }) => (
       <View
@@ -448,10 +448,12 @@ export default function App() {
     return (
       <View style={styles.spotRatingOverlay}>
         {Array.from({ length: fullCaps }).map((_, index) => (
-          <ChoneteMini key={`cap-full-${spotId}-${index}`} />
+          <View key={`cap-full-${spotId}-${index}`} style={styles.spotRatingCapToken}>
+            <ChoneteMini />
+          </View>
         ))}
         {hasHalfCap ? (
-          <View style={styles.spotHalfCapWrap}>
+          <View style={[styles.spotRatingCapToken, styles.spotHalfCapWrap]}>
             <ChoneteMini />
           </View>
         ) : null}
@@ -3144,6 +3146,13 @@ const styles = StyleSheet.create({
   spotHalfCapWrap: {
     width: 10,
     overflow: "hidden",
+  },
+  spotRatingCapToken: {
+    width: 12,
+    height: 16,
+    marginRight: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   spotImageFeatureIconBadge: {
     minWidth: 18,
