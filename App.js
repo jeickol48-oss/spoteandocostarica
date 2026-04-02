@@ -397,9 +397,8 @@ export default function App() {
     const average = getSpotAverageRating(spotId);
     if (!average) return null;
 
-    const fullCaps = Math.floor(average);
-    const hasHalfCap = average - fullCaps >= 0.5;
     const choneteSize = 15;
+    const roundedRating = Math.round(average);
 
     const ChoneteMini = ({ size = choneteSize }) => (
       <View
@@ -447,16 +446,8 @@ export default function App() {
 
     return (
       <View style={styles.spotRatingOverlay}>
-        {Array.from({ length: fullCaps }).map((_, index) => (
-          <View key={`cap-full-${spotId}-${index}`} style={styles.spotRatingCapToken}>
-            <ChoneteMini />
-          </View>
-        ))}
-        {hasHalfCap ? (
-          <View style={[styles.spotRatingCapToken, styles.spotHalfCapWrap]}>
-            <ChoneteMini />
-          </View>
-        ) : null}
+        <Text style={styles.spotRatingValue}>{roundedRating}</Text>
+        <ChoneteMini />
       </View>
     );
   };
@@ -3143,16 +3134,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
-  spotHalfCapWrap: {
-    width: 10,
-    overflow: "hidden",
-  },
-  spotRatingCapToken: {
-    width: 12,
-    height: 16,
-    marginRight: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  spotRatingValue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#7a1c1c",
+    marginRight: 4,
   },
   spotImageFeatureIconBadge: {
     minWidth: 18,
