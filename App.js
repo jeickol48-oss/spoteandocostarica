@@ -1356,27 +1356,6 @@ export default function App() {
         </View>
         <Text style={[styles.postDescription, { color: theme.text }]}>{selectedHomeSpot.description}</Text>
 
-        <View style={styles.ratingBlock}>
-          <Text style={[styles.filterTitle, { color: theme.text }]}>Puntaje del spot</Text>
-          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
-            {getSpotAverageRating(selectedHomeSpot.id).toFixed(1)} / 5 · {(spotRatings[selectedHomeSpot.id] || []).length} votos
-          </Text>
-          <View style={styles.ratingButtonsRow}>
-            {[1, 2, 3, 4, 5].map((value) => {
-              const active = value <= getSpotUserRating(selectedHomeSpot.id);
-              return (
-                <TouchableOpacity
-                  key={`rate-${selectedHomeSpot.id}-${value}`}
-                  style={[styles.ratingButton, active && styles.ratingButtonActive]}
-                  onPress={() => handleRateSpot(selectedHomeSpot.id, value)}
-                >
-                  <Text style={styles.ratingEmoji}>🧢</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
           {selectedHomeSpot.photos.map((photo, index) => (
             <TouchableOpacity key={`${selectedHomeSpot.id}-${index}`} onPress={() => openGallery(selectedHomeSpot.photos, index, "detalle")}>
@@ -1426,6 +1405,27 @@ export default function App() {
             })}
           </View>
         ) : null}
+
+        <View style={styles.ratingBlock}>
+          <Text style={[styles.filterTitle, { color: theme.text }]}>Puntaje del spot</Text>
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
+            {getSpotAverageRating(selectedHomeSpot.id).toFixed(1)} / 5 · {(spotRatings[selectedHomeSpot.id] || []).length} votos
+          </Text>
+          <View style={styles.ratingButtonsRow}>
+            {[1, 2, 3, 4, 5].map((value) => {
+              const active = value <= getSpotUserRating(selectedHomeSpot.id);
+              return (
+                <TouchableOpacity
+                  key={`rate-${selectedHomeSpot.id}-${value}`}
+                  style={[styles.ratingButton, active && styles.ratingButtonActive]}
+                  onPress={() => handleRateSpot(selectedHomeSpot.id, value)}
+                >
+                  <Text style={styles.ratingEmoji}>🧢</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         <View style={styles.profileGalleryHeader}>
           <Text style={[styles.filterTitle, { color: theme.text }]}>Comentarios de visitantes ({comments.length})</Text>
