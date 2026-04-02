@@ -160,6 +160,8 @@ export default function App() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [gallerySourceTab, setGallerySourceTab] = useState("detalle");
+  const [rankingWindow, setRankingWindow] = useState("weekly");
+  const [spotVisitEvents, setSpotVisitEvents] = useState([]);
   const [commentDraft, setCommentDraft] = useState("");
   const [spotComments, setSpotComments] = useState({
     "1": [
@@ -269,6 +271,11 @@ export default function App() {
     results: isEnglish ? "Results" : "Resultados",
     foundCount: isEnglish ? "found" : "encontrados",
     nearYou: isEnglish ? "Near you" : "Cerca de ti",
+    rankingsTitle: isEnglish ? "Top visited rankings" : "Rankings de spots más visitados",
+    daily: isEnglish ? "Daily" : "Diario",
+    weekly: isEnglish ? "Weekly" : "Semanal",
+    monthly: isEnglish ? "Monthly" : "Mensual",
+    noRankings: isEnglish ? "No visits yet for this period." : "Aún no hay visitas en este periodo.",
     mapResults: isEnglish ? "Map results" : "Resultados en mapa",
     mapHint: isEnglish ? "Tap a pin to open spot detail" : "Toca un pin para abrir el detalle del spot",
     allFeatures: isEnglish ? "All features" : "Todas las características",
@@ -449,6 +456,22 @@ export default function App() {
   const registerViewedSpot = (spot) => {
     if (!spot?.id) return;
     const normalized = normalizeSpot(spot);
+    const viewedAt = new Date().toISOString();
+
+    setSpotVisitEvents((current) => [
+      {
+        id: `${normalized.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        spotId: normalized.id,
+        name: normalized.name,
+        province: normalized.province,
+        type: normalized.type,
+        imageUrl: normalized.imageUrl,
+        mapUrl: normalized.mapUrl,
+        viewedAt,
+      },
+      ...current,
+    ]);
+
     setViewedSpots((current) => {
       const withoutCurrent = current.filter((entry) => entry.id !== normalized.id);
       return [
@@ -459,6 +482,7 @@ export default function App() {
           type: normalized.type,
           imageUrl: normalized.imageUrl,
           mapUrl: normalized.mapUrl,
+          viewedAt,
           dateLabel: new Date().toLocaleString(),
         },
         ...withoutCurrent,
@@ -516,6 +540,9 @@ export default function App() {
         if (Array.isArray(remote.viewedSpots)) {
           setViewedSpots(remote.viewedSpots);
         }
+        if (Array.isArray(remote.spotVisitEvents)) {
+          setSpotVisitEvents(remote.spotVisitEvents);
+        }
         if (remote.settings) {
           setSettings((current) => ({ ...current, ...remote.settings }));
         }
@@ -555,6 +582,7 @@ export default function App() {
           savedProfile,
           savedSpotIds,
           viewedSpots,
+          spotVisitEvents,
           settings,
           spotComments,
           socialGraph,
@@ -575,6 +603,7 @@ export default function App() {
     settings,
     socialGraph,
     contentReports,
+    spotVisitEvents,
     spotComments,
     spots,
     viewedSpots,
@@ -803,6 +832,31 @@ export default function App() {
     () => spots.map(normalizeSpot).filter((spot) => spot.province === nearbyProvince),
     [nearbyProvince, spots]
   );
+
+  const rankingByWindow = useMemo(() => {
+    const daysByWindow = { daily: 1, weekly: 7, monthly: 30 };
+    const selectedDays = daysByWindow[rankingWindow] || 7;
+    const cutoff = Date.now() - selectedDays * 24 * 60 * 60 * 1000;
+
+    const grouped = new Map();
+    spotVisitEvents.forEach((event) => {
+      const viewedAtTime = new Date(event.viewedAt || 0).getTime();
+      if (!viewedAtTime || viewedAtTime < cutoff) return;
+
+      const current = grouped.get(event.spotId) || {
+        ...event,
+        visits: 0,
+        lastViewedAt: viewedAtTime,
+      };
+      current.visits += 1;
+      if (viewedAtTime > current.lastViewedAt) current.lastViewedAt = viewedAtTime;
+      grouped.set(event.spotId, current);
+    });
+
+    return Array.from(grouped.values())
+      .sort((a, b) => b.visits - a.visits || b.lastViewedAt - a.lastViewedAt)
+      .slice(0, 5);
+  }, [rankingWindow, spotVisitEvents]);
 
   const creators = useMemo(() => {
     const profileCreator = savedProfile
@@ -1125,6 +1179,66 @@ export default function App() {
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.homeFeatured}</Text>
         <Text style={[styles.sectionCount, { color: theme.muted }]}>{spots.length} {uiText.spotsCount}</Text>
+      </View>
+
+      <View style={[styles.searchCard, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 12 }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.rankingsTitle}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBlock}>
+          {[
+            { key: "daily", label: uiText.daily },
+            { key: "weekly", label: uiText.weekly },
+            { key: "monthly", label: uiText.monthly },
+          ].map((windowOption) => (
+            <TouchableOpacity
+              key={`rank-window-${windowOption.key}`}
+              style={[styles.filterChip, rankingWindow === windowOption.key && styles.filterChipActive]}
+              onPress={() => setRankingWindow(windowOption.key)}
+            >
+              <Text
+                style={[
+                  styles.filterChipText,
+                  rankingWindow === windowOption.key && styles.filterChipTextActive,
+                ]}
+              >
+                {windowOption.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {rankingByWindow.length ? (
+          rankingByWindow.map((rankSpot, index) => (
+            <TouchableOpacity
+              key={`ranking-${rankSpot.spotId}-${rankingWindow}`}
+              style={styles.rankingRow}
+              onPress={() =>
+                openHomeSpotDetail(
+                  {
+                    id: rankSpot.spotId,
+                    name: rankSpot.name,
+                    province: rankSpot.province,
+                    type: rankSpot.type,
+                    location: rankSpot.province,
+                    imageUrl: rankSpot.imageUrl || fallbackImageUrl,
+                    mapUrl: rankSpot.mapUrl || "https://maps.google.com/?q=Costa+Rica",
+                  },
+                  "home"
+                )
+              }
+            >
+              <Text style={styles.rankingPosition}>#{index + 1}</Text>
+              <Image source={{ uri: rankSpot.imageUrl || fallbackImageUrl }} style={styles.rankingImage} />
+              <View style={styles.rankingMeta}>
+                <Text style={styles.resultName}>{rankSpot.name}</Text>
+                <Text style={styles.resultDetail}>
+                  {rankSpot.province} · {getSpotTypeLabel(rankSpot.type)} · {rankSpot.visits} visitas
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noRankings}</Text>
+        )}
       </View>
 
       <View style={styles.feedGrid}>
@@ -2767,6 +2881,32 @@ const styles = StyleSheet.create({
   resultMeta: { padding: 10, flex: 1, justifyContent: "space-between" },
   resultName: { fontSize: 14, fontWeight: "700", color: "#7a1c1c" },
   resultDetail: { fontSize: 12, color: "#6b7280" },
+  rankingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fffafa",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  rankingPosition: {
+    width: 34,
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#7a1c1c",
+  },
+  rankingImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  rankingMeta: {
+    flex: 1,
+  },
 
   nearbyCard: {
     width: 150,
