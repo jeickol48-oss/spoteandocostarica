@@ -150,8 +150,6 @@ export default function App() {
   const [provinceFilter, setProvinceFilter] = useState("Todas");
   const [typeFilter, setTypeFilter] = useState("Todos");
   const [searchFeatureFilter, setSearchFeatureFilter] = useState("all");
-  const [smartRouteType, setSmartRouteType] = useState("all");
-  const [smartRouteDistanceKm, setSmartRouteDistanceKm] = useState(60);
   const [nearbyOnly, setNearbyOnly] = useState(false);
   const [creatorSearchText, setCreatorSearchText] = useState("");
   const [selectedHomeSpot, setSelectedHomeSpot] = useState(null);
@@ -281,15 +279,6 @@ export default function App() {
     mapResults: isEnglish ? "Map results" : "Resultados en mapa",
     mapHint: isEnglish ? "Tap a pin to open spot detail" : "Toca un pin para abrir el detalle del spot",
     allFeatures: isEnglish ? "All features" : "Todas las características",
-    smartRoutes: isEnglish ? "Smart routes near you" : "Rutas inteligentes cerca de ti",
-    smartRoutesHint: isEnglish
-      ? "Suggestions by distance and preferred type"
-      : "Sugerencias por distancia y tipo de preferencia",
-    maxDistance: isEnglish ? "Max distance" : "Distancia máxima",
-    openRoute: isEnglish ? "Open route" : "Abrir ruta",
-    noSmartRoutes: isEnglish
-      ? "No smart route suggestions with the selected filters."
-      : "No hay sugerencias de rutas con los filtros elegidos.",
     searchCreators: isEnglish ? "Search creators" : "Buscar creadores",
     searchCreatorsPlaceholder: isEnglish ? "Search creator profiles..." : "Buscar perfiles de creadores...",
     openMap: isEnglish ? "Open map" : "Abrir mapa",
@@ -511,14 +500,6 @@ export default function App() {
     if (supported) await Linking.openURL(url);
   };
 
-  const handleOpenRouteToSpot = async (spot) => {
-    const destination = getSpotCoordinate(spot);
-    const origin = `${selectedLocation.latitude},${selectedLocation.longitude}`;
-    const destinationValue = `${destination.latitude},${destination.longitude}`;
-    const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destinationValue}&travelmode=driving`;
-    await handleOpenMap(routeUrl, spot);
-  };
-
   const normalizeSpot = (spot) => ({
     ...spot,
     imageUrl: spot.imageUrl?.trim() ? spot.imageUrl : fallbackImageUrl,
@@ -644,21 +625,6 @@ export default function App() {
       };
     }
     return provinceCoordinates[spot?.province] || provinceCoordinates[defaultUserProvince];
-  };
-
-  const getDistanceInKm = (from, to) => {
-    const toRadians = (deg) => (deg * Math.PI) / 180;
-    const earthRadiusKm = 6371;
-    const latDiff = toRadians(to.latitude - from.latitude);
-    const lonDiff = toRadians(to.longitude - from.longitude);
-    const a =
-      Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
-      Math.cos(toRadians(from.latitude)) *
-        Math.cos(toRadians(to.latitude)) *
-        Math.sin(lonDiff / 2) *
-        Math.sin(lonDiff / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return earthRadiusKm * c;
   };
 
   const openHomeSpotDetail = (spot, sourceTab = activeTab) => {
@@ -861,19 +827,6 @@ export default function App() {
       )
       .filter((spot) => (nearbyOnly ? spot.province === nearbyProvince : true));
   }, [nearbyOnly, nearbyProvince, provinceFilter, searchFeatureFilter, searchText, spots, typeFilter]);
-
-  const smartRouteSuggestions = useMemo(() => {
-    return spots
-      .map(normalizeSpot)
-      .map((spot) => {
-        const distanceKm = getDistanceInKm(selectedLocation, getSpotCoordinate(spot));
-        return { ...spot, distanceKm };
-      })
-      .filter((spot) => (smartRouteType === "all" ? true : spot.type === smartRouteType))
-      .filter((spot) => spot.distanceKm <= smartRouteDistanceKm)
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .slice(0, 3);
-  }, [selectedLocation, smartRouteDistanceKm, smartRouteType, spots]);
 
   const nearbyRecommendations = useMemo(
     () => spots.map(normalizeSpot).filter((spot) => spot.province === nearbyProvince),
@@ -1636,85 +1589,7 @@ export default function App() {
             {uiText.nearbyToggle}
           </Text>
         </TouchableOpacity>
-
-        <View style={styles.filterBlock}>
-          <Text style={styles.filterTitle}>{uiText.smartRoutes}</Text>
-          <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 8 }]}>{uiText.smartRoutesHint}</Text>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity
-              style={[styles.filterChip, smartRouteType === "all" && styles.filterChipActive]}
-              onPress={() => setSmartRouteType("all")}
-            >
-              <Text style={[styles.filterChipText, smartRouteType === "all" && styles.filterChipTextActive]}>
-                {uiText.spotType}: Todos
-              </Text>
-            </TouchableOpacity>
-            {spotTypes
-              .filter((type) => type !== "Todos")
-              .map((type) => (
-                <TouchableOpacity
-                  key={`route-type-${type}`}
-                  style={[styles.filterChip, smartRouteType === type && styles.filterChipActive]}
-                  onPress={() => setSmartRouteType(type)}
-                >
-                  <Text style={[styles.filterChipText, smartRouteType === type && styles.filterChipTextActive]}>
-                    {getSpotTypeLabel(type)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-          </ScrollView>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-            {[30, 60, 120].map((distance) => (
-              <TouchableOpacity
-                key={`route-distance-${distance}`}
-                style={[styles.filterChip, smartRouteDistanceKm === distance && styles.filterChipActive]}
-                onPress={() => setSmartRouteDistanceKm(distance)}
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    smartRouteDistanceKm === distance && styles.filterChipTextActive,
-                  ]}
-                >
-                  {uiText.maxDistance}: {distance} km
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
       </View>
-
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.smartRoutes}</Text>
-        <Text style={[styles.sectionCount, { color: theme.muted }]}>
-          {smartRouteSuggestions.length} sugerencias
-        </Text>
-      </View>
-      {smartRouteSuggestions.length ? (
-        smartRouteSuggestions.map((spot) => (
-          <View key={`smart-route-${spot.id}`} style={styles.smartRouteCard}>
-            <Image source={{ uri: spot.imageUrl }} style={styles.smartRouteImage} />
-            <View style={styles.smartRouteMeta}>
-              <Text style={styles.resultName}>{spot.name}</Text>
-              <Text style={styles.resultDetail}>
-                {spot.province} · {getSpotTypeLabel(spot.type)} · {spot.distanceKm.toFixed(1)} km
-              </Text>
-              <View style={styles.feedFooterActions}>
-                <TouchableOpacity style={styles.feedAction} onPress={() => openHomeSpotDetail(spot, "buscar")}>
-                  <Text style={styles.feedActionText}>Ver spot</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.secondaryAction} onPress={() => handleOpenRouteToSpot(spot)}>
-                  <Text style={styles.secondaryActionText}>{uiText.openRoute}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        ))
-      ) : (
-        <Text style={[styles.profileSubtitle, { color: theme.muted }]}>{uiText.noSmartRoutes}</Text>
-      )}
 
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.results}</Text>
@@ -3031,24 +2906,6 @@ const styles = StyleSheet.create({
   },
   rankingMeta: {
     flex: 1,
-  },
-  smartRouteCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#f0dada",
-    borderRadius: 12,
-    marginBottom: 10,
-    overflow: "hidden",
-  },
-  smartRouteImage: {
-    width: 90,
-    height: 90,
-  },
-  smartRouteMeta: {
-    flex: 1,
-    padding: 10,
   },
 
   nearbyCard: {
