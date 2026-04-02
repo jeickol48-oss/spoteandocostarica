@@ -173,6 +173,7 @@ export default function App() {
     "4": [{ id: "c5", user: "@CaribeLover", text: "Ambiente super chill y buena comida." }],
     "5": [{ id: "c6", user: "@SJWalks", text: "Perfecto para ir en familia." }],
   });
+  const [spotRatings, setSpotRatings] = useState({});
   const [contentReports, setContentReports] = useState([]);
   const [commentLikes, setCommentLikes] = useState({});
   const [commentReplies, setCommentReplies] = useState({});
@@ -556,6 +557,9 @@ export default function App() {
         if (remote.spotComments) {
           setSpotComments(remote.spotComments);
         }
+        if (remote.spotRatings) {
+          setSpotRatings(remote.spotRatings);
+        }
         if (remote.socialGraph) {
           setSocialGraph(remote.socialGraph);
         }
@@ -592,6 +596,7 @@ export default function App() {
           spotVisitEvents,
           settings,
           spotComments,
+          spotRatings,
           socialGraph,
           contentReports,
           nearbyProvince,
@@ -612,6 +617,7 @@ export default function App() {
     contentReports,
     spotVisitEvents,
     spotComments,
+    spotRatings,
     spots,
     viewedSpots,
   ]);
@@ -687,6 +693,38 @@ export default function App() {
       ]
     );
     return false;
+  };
+
+  const getSpotAverageRating = (spotId) => {
+    const ratings = spotRatings[spotId] || [];
+    if (!ratings.length) return 0;
+    const total = ratings.reduce((sum, item) => sum + Number(item.value || 0), 0);
+    return total / ratings.length;
+  };
+
+  const getSpotUserRating = (spotId) => {
+    const currentUser = normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante";
+    return (spotRatings[spotId] || []).find((item) => item.user === currentUser)?.value || 0;
+  };
+
+  const handleRateSpot = (spotId, value) => {
+    if (!requireSavedProfile("Para calificar spots primero debes crear y guardar tu perfil.")) {
+      return;
+    }
+
+    const currentUser = normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante";
+    setSpotRatings((current) => {
+      const currentRatings = current[spotId] || [];
+      const hasRating = currentRatings.some((item) => item.user === currentUser);
+      const nextRatings = hasRating
+        ? currentRatings.map((item) => (item.user === currentUser ? { ...item, value } : item))
+        : [...currentRatings, { user: currentUser, value, ratedAt: new Date().toISOString() }];
+
+      return {
+        ...current,
+        [spotId]: nextRatings,
+      };
+    });
   };
 
   const handleAddComment = () => {
@@ -1317,6 +1355,27 @@ export default function App() {
           </TouchableOpacity>
         </View>
         <Text style={[styles.postDescription, { color: theme.text }]}>{selectedHomeSpot.description}</Text>
+
+        <View style={styles.ratingBlock}>
+          <Text style={[styles.filterTitle, { color: theme.text }]}>Puntaje del spot</Text>
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>
+            {getSpotAverageRating(selectedHomeSpot.id).toFixed(1)} / 5 · {(spotRatings[selectedHomeSpot.id] || []).length} votos
+          </Text>
+          <View style={styles.ratingButtonsRow}>
+            {[1, 2, 3, 4, 5].map((value) => {
+              const active = value <= getSpotUserRating(selectedHomeSpot.id);
+              return (
+                <TouchableOpacity
+                  key={`rate-${selectedHomeSpot.id}-${value}`}
+                  style={[styles.ratingButton, active && styles.ratingButtonActive]}
+                  onPress={() => handleRateSpot(selectedHomeSpot.id, value)}
+                >
+                  <Text style={styles.ratingEmoji}>🧢</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.postPhotosRow}>
           {selectedHomeSpot.photos.map((photo, index) => (
@@ -2687,6 +2746,36 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontSize: 14,
     lineHeight: 20,
+  },
+  ratingBlock: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+    borderRadius: 12,
+    padding: 10,
+    backgroundColor: "#fffafa",
+  },
+  ratingButtonsRow: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  ratingButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#f2c7c7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+    backgroundColor: "#ffffff",
+  },
+  ratingButtonActive: {
+    backgroundColor: "#ffe4e6",
+    borderColor: "#d62828",
+  },
+  ratingEmoji: {
+    fontSize: 18,
   },
   postPhotosRow: {
     marginTop: 12,

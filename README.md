@@ -90,6 +90,7 @@ npm run start -- --clear
 ## Estado de próximos pasos
 - [ ] **Subida de imágenes (Firebase Storage/CDN).** ⬅️ Pendiente principal.
 - [ ] **Autenticación social** (preconfiguración Firebase lista, falta implementar login completo en UI/flujo).
+- [ ] **Restringir panel admin de moderación solo para rol administrador** (ahora visible para cualquier usuario).
 - [x] ~~Moderación y reportes de contenido~~.
 - [x] ~~Búsqueda por filtros y mapas~~.
 - [x] ~~Modo offline para guardar spots favoritos~~.
