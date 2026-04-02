@@ -87,10 +87,10 @@ Antes de integrar los botones de login social en la UI:
 npm run start -- --clear
 ```
 
-## Próximos pasos sugeridos
-- Subida de imágenes (Firebase Storage/CDN).
-- Autenticación social.
-- Moderación y reportes de contenido.
-- Búsqueda por filtros y mapas.
-- Modo offline para guardar spots favoritos.
-- Rankings semanales de spots más visitados.
+## Estado de próximos pasos
+- [ ] **Subida de imágenes (Firebase Storage/CDN).** ⬅️ Pendiente principal.
+- [ ] **Autenticación social** (preconfiguración Firebase lista, falta implementar login completo en UI/flujo).
+- [x] ~~Moderación y reportes de contenido~~.
+- [x] ~~Búsqueda por filtros y mapas~~.
+- [x] ~~Modo offline para guardar spots favoritos~~.
+- [x] ~~Rankings diarios, semanales y mensuales de spots más visitados~~.
