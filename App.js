@@ -220,6 +220,7 @@ export default function App() {
   const [socialGraph, setSocialGraph] = useState({});
   const [connectionTab, setConnectionTab] = useState("followers");
   const [isConnectionsModalVisible, setIsConnectionsModalVisible] = useState(false);
+  const [achievementPreview, setAchievementPreview] = useState(null);
   const [moderationFilter, setModerationFilter] = useState("pending");
 
   const [isRemoteReady, setIsRemoteReady] = useState(false);
@@ -690,7 +691,7 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    if (!["buscar", "detalle"].includes(activeTab)) return;
+    if (!["buscar", "detalle", "resultados"].includes(activeTab)) return;
     requestAnimationFrame(() => {
       mainScrollRef.current?.scrollTo({ y: 0, animated: false });
     });
@@ -773,6 +774,14 @@ export default function App() {
     const currentUser = normalizeUsername(savedProfile?.username || profileForm.username) || "@Visitante";
     return (spotRatings[spotId] || []).find((item) => item.user === currentUser)?.value || 0;
   };
+
+  const getSpotCreationAchievements = (spotsCount) =>
+    addSpotMilestones.map((target) => ({
+      id: `spots-${target}`,
+      target,
+      unlocked: spotsCount >= target,
+      progress: Math.min(spotsCount, target),
+    }));
 
   const handleRateSpot = (spotId, value) => {
     if (!requireSavedProfile("Para calificar spots primero debes crear y guardar tu perfil.")) {
@@ -1457,7 +1466,7 @@ export default function App() {
       </View>
 
       <View style={styles.feedGrid}>
-        {spots.map((spot) => {
+        {spots.slice(0, 10).map((spot) => {
           const s = normalizeSpot(spot);
           return (
             <TouchableOpacity key={s.id} style={styles.feedCard} onPress={() => openHomeSpotDetail(s, "home")}>
@@ -2026,6 +2035,9 @@ export default function App() {
     const creatorFollowing = getFollowingForUser(selectedCreator.username);
     const isFollowingCreator = creatorFollowers.includes(currentUsername);
     const isOwnCreatorProfile = selectedCreator.username === currentUsername;
+    const creatorUnlockedAchievements = getSpotCreationAchievements(creatorSpots.length).filter(
+      (achievement) => achievement.unlocked
+    );
 
     return (
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -2060,6 +2072,27 @@ export default function App() {
         <Text style={[styles.profileSubtitle, { color: theme.muted, marginBottom: 8 }]}>
           {selectedCreator.bio || "Sin biografía por ahora."}
         </Text>
+
+        <View style={styles.profileGalleryHeader}>
+          <Text style={[styles.filterTitle, { color: theme.text }]}>Logros ganadas</Text>
+          <Text style={[styles.sectionCount, { color: theme.muted }]}>{creatorUnlockedAchievements.length}</Text>
+        </View>
+        {creatorUnlockedAchievements.length ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.unlockedAchievementsRow}>
+            {creatorUnlockedAchievements.map((achievement) => (
+              <View key={`creator-achievement-${achievement.id}`} style={styles.creatorAchievementBadge}>
+                {achievement.target === 5 ? (
+                  <Image source={{ uri: achievementFiveIconUri }} style={styles.creatorAchievementIconImage} />
+                ) : (
+                  <Ionicons name="ribbon" size={20} color="#be123c" />
+                )}
+                <Text style={styles.creatorAchievementText}>{achievement.target}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Aún no tiene logros desbloqueados.</Text>
+        )}
 
         {!isOwnCreatorProfile ? (
           <TouchableOpacity
@@ -2344,15 +2377,7 @@ export default function App() {
     const myFollowers = getFollowersForUser(profile.username);
     const myFollowing = getFollowingForUser(profile.username);
     const visibleConnections = connectionTab === "followers" ? myFollowers : myFollowing;
-    const spotCreationAchievements = addSpotMilestones.map((target) => {
-      const unlocked = mySpots.length >= target;
-      return {
-        id: `spots-${target}`,
-        target,
-        unlocked,
-        progress: Math.min(mySpots.length, target),
-      };
-    });
+    const spotCreationAchievements = getSpotCreationAchievements(mySpots.length);
 
     return (
       <View style={styles.profileEditorCard}>
@@ -2420,8 +2445,11 @@ export default function App() {
         </View>
         <View style={styles.achievementGrid}>
           {spotCreationAchievements.map((achievement) => (
-            <View
+            <TouchableOpacity
               key={achievement.id}
+              activeOpacity={achievement.unlocked ? 0.85 : 1}
+              disabled={!achievement.unlocked}
+              onPress={() => setAchievementPreview(achievement)}
               style={[
                 styles.achievementCard,
                 achievement.unlocked ? styles.achievementCardUnlocked : styles.achievementCardLocked,
@@ -2434,7 +2462,7 @@ export default function App() {
               ) : (
                 <View style={[styles.achievementIconWrap, achievement.unlocked && styles.achievementIconWrapUnlocked]}>
                   <Ionicons
-                    name={achievement.unlocked ? "trophy" : "lock-closed"}
+                    name={achievement.unlocked ? "lock-open" : "lock-closed"}
                     size={16}
                     color={achievement.unlocked ? "#ffffff" : "#7a1c1c"}
                   />
@@ -2446,7 +2474,17 @@ export default function App() {
               <Text style={styles.achievementProgress}>
                 {achievement.progress}/{achievement.target}
               </Text>
-            </View>
+              <View style={styles.achievementLockRow}>
+                <Ionicons
+                  name={achievement.unlocked ? "lock-open" : "lock-closed"}
+                  size={12}
+                  color={achievement.unlocked ? "#15803d" : "#6b7280"}
+                />
+                <Text style={[styles.achievementLockText, achievement.unlocked && styles.achievementLockTextUnlocked]}>
+                  {achievement.unlocked ? "Desbloqueado" : "Bloqueado"}
+                </Text>
+              </View>
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -2543,6 +2581,34 @@ export default function App() {
                   </Text>
                 )}
               </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={Boolean(achievementPreview)}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setAchievementPreview(null)}
+        >
+          <View style={styles.connectionsModalBackdrop}>
+            <View style={styles.achievementPreviewCard}>
+              <View style={styles.publicHeaderRow}>
+                <Text style={styles.filterTitle}>Logro desbloqueado</Text>
+                <TouchableOpacity onPress={() => setAchievementPreview(null)}>
+                  <Ionicons name="close" size={20} color="#7a1c1c" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.achievementPreviewContent}>
+                {achievementPreview?.target === 5 ? (
+                  <Image source={{ uri: achievementFiveIconUri }} style={styles.achievementPreviewImage} />
+                ) : (
+                  <View style={styles.achievementPreviewFallback}>
+                    <Ionicons name="lock-open" size={54} color="#be123c" />
+                  </View>
+                )}
+                <Text style={styles.achievementPreviewTitle}>{achievementPreview?.target || 0} spots</Text>
+              </View>
             </View>
           </View>
         </Modal>
@@ -3806,6 +3872,20 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontWeight: "600",
   },
+  achievementLockRow: {
+    marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  achievementLockText: {
+    marginLeft: 4,
+    fontSize: 10,
+    color: "#6b7280",
+    fontWeight: "700",
+  },
+  achievementLockTextUnlocked: {
+    color: "#15803d",
+  },
   firstAchievementIconBadge: {
     width: 30,
     height: 30,
@@ -3841,6 +3921,64 @@ const styles = StyleSheet.create({
   },
   connectionsModalList: {
     marginTop: 8,
+  },
+  achievementPreviewCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+  },
+  achievementPreviewContent: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  achievementPreviewImage: {
+    width: 180,
+    height: 180,
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  achievementPreviewFallback: {
+    width: 180,
+    height: 180,
+    borderRadius: 20,
+    backgroundColor: "#fff1f2",
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  achievementPreviewTitle: {
+    fontSize: 16,
+    color: "#7a1c1c",
+    fontWeight: "800",
+  },
+  unlockedAchievementsRow: {
+    marginBottom: 8,
+  },
+  creatorAchievementBadge: {
+    width: 62,
+    height: 72,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    backgroundColor: "#fffafa",
+    marginRight: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  creatorAchievementIconImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  creatorAchievementText: {
+    marginTop: 5,
+    fontSize: 11,
+    color: "#7a1c1c",
+    fontWeight: "700",
   },
   creatorCard: {
     marginTop: 10,
