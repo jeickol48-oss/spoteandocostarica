@@ -275,6 +275,9 @@ export default function App() {
     spotType: isEnglish ? "Spot type" : "Tipo de spot",
     nearbyToggle: isEnglish ? "Recommendations near you" : "Recomendaciones cerca de ti",
     results: isEnglish ? "Results" : "Resultados",
+    allResultsTitle: isEnglish ? "All results" : "Todos los resultados",
+    viewAllResults: isEnglish ? "View all results" : "Ver todos los resultados",
+    backToSearch: isEnglish ? "Back to search" : "Volver a buscar",
     foundCount: isEnglish ? "found" : "encontrados",
     nearYou: isEnglish ? "Near you" : "Cerca de ti",
     rankingsTitle: isEnglish ? "Top visited rankings" : "Rankings de spots más visitados",
@@ -331,6 +334,7 @@ export default function App() {
     noRecentViewed: isEnglish
       ? "You haven't viewed spots recently."
       : "Todavía no has visto spots recientemente.",
+    noSearchResults: isEnglish ? "No spots found with those filters." : "No se encontraron spots con esos filtros.",
     visitedLabel: isEnglish ? "Visited" : "Visitaste",
     on: "ON",
     off: "OFF",
@@ -1732,6 +1736,8 @@ export default function App() {
   const renderSearch = () => {
     const mapFocusSpot = filteredSpots[0];
     const mapFocusCoordinate = mapFocusSpot ? getSpotCoordinate(mapFocusSpot) : selectedLocation;
+    const previewSpots = filteredSpots.slice(0, 5);
+    const hasMoreResults = filteredSpots.length > previewSpots.length;
 
     return (
     <>
@@ -1869,7 +1875,7 @@ export default function App() {
       </View>
 
       <View style={styles.searchResultsList}>
-        {filteredSpots.map((spot) => (
+        {previewSpots.map((spot) => (
           <TouchableOpacity key={spot.id} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "buscar")}>
             <View style={styles.resultImageWrap}>
               <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
@@ -1891,6 +1897,11 @@ export default function App() {
             </View>
           </TouchableOpacity>
         ))}
+        {hasMoreResults ? (
+          <TouchableOpacity style={styles.viewAllResultsButton} onPress={() => setActiveTab("resultados")}>
+            <Text style={styles.viewAllResultsText}>{uiText.viewAllResults}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.sectionHeader}>
@@ -1937,9 +1948,63 @@ export default function App() {
   );
   };
 
+  const renderAllSearchResults = () => {
+    const orderedResults = [...filteredSpots].sort((a, b) => {
+      const ratingDiff = getSpotAverageRating(b.id) - getSpotAverageRating(a.id);
+      if (ratingDiff !== 0) return ratingDiff;
+      return a.name.localeCompare(b.name, "es");
+    });
+
+    return (
+      <View style={styles.searchCard}>
+        <View style={styles.postHeaderRow}>
+          <Text style={[styles.searchTitle, { flex: 1 }]}>{uiText.allResultsTitle}</Text>
+          <TouchableOpacity style={styles.useLocationButton} onPress={() => setActiveTab("buscar")}>
+            <Text style={styles.useLocationButtonText}>{uiText.backToSearch}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.profileSubtitle}>
+          {orderedResults.length} {uiText.foundCount}
+        </Text>
+
+        {orderedResults.length ? (
+          orderedResults.map((spot, index) => (
+            <TouchableOpacity
+              key={`all-result-${spot.id}`}
+              style={styles.allResultsCard}
+              onPress={() => openHomeSpotDetail(spot, "resultados")}
+            >
+              <Text style={styles.allResultsRank}>#{index + 1}</Text>
+              <Image source={{ uri: spot.imageUrl }} style={styles.allResultsImage} />
+              <View style={styles.allResultsMeta}>
+                <Text style={styles.resultName}>{spot.name}</Text>
+                <Text style={styles.resultDetail}>
+                  {spot.province} · {getSpotTypeLabel(spot.type)} · {getSpotAverageRating(spot.id).toFixed(1)}/5
+                </Text>
+                <View style={styles.feedFooterActions}>
+                  <TouchableOpacity style={styles.feedAction} onPress={() => handleOpenMap(spot.mapUrl, spot)}>
+                    <Text style={styles.feedActionText}>{uiText.openMap}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.secondaryAction} onPress={() => toggleSaveSpot(spot)}>
+                    <Text style={styles.secondaryActionText}>
+                      {savedSpotIds.includes(spot.id) ? uiText.saved : uiText.save}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.profileSubtitle}>{uiText.noSearchResults}</Text>
+        )}
+      </View>
+    );
+  };
+
 
   const renderCreatorDetail = () => {
-    if (!selectedCreator) return renderSearch();
+    if (!selectedCreator) return activeTab === "resultados" ? renderAllSearchResults() : renderSearch();
 
     const creatorSpots = spots
       .map(normalizeSpot)
@@ -2792,6 +2857,7 @@ export default function App() {
       >
         {activeTab === "home" && renderHome()}
         {activeTab === "buscar" && renderSearch()}
+        {activeTab === "resultados" && renderAllSearchResults()}
         {activeTab === "agregar" && renderAddSpot()}
         {activeTab === "perfil" && renderProfile()}
         {activeTab === "config" && renderSettings()}
@@ -3426,6 +3492,45 @@ const styles = StyleSheet.create({
   resultMeta: { padding: 10, flex: 1, justifyContent: "space-between" },
   resultName: { fontSize: 14, fontWeight: "700", color: "#7a1c1c" },
   resultDetail: { fontSize: 12, color: "#6b7280" },
+  viewAllResultsButton: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: "#f2c7c7",
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: "center",
+    backgroundColor: "#fffafa",
+  },
+  viewAllResultsText: {
+    color: "#7a1c1c",
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  allResultsCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fffafa",
+    borderWidth: 1,
+    borderColor: "#f0dada",
+    borderRadius: 14,
+    padding: 10,
+    marginTop: 10,
+  },
+  allResultsRank: {
+    width: 30,
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#7a1c1c",
+  },
+  allResultsImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  allResultsMeta: {
+    flex: 1,
+  },
   rankingRow: {
     flexDirection: "row",
     alignItems: "center",
