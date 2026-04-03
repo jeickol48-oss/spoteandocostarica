@@ -2408,13 +2408,20 @@ export default function App() {
                 achievement.unlocked ? styles.achievementCardUnlocked : styles.achievementCardLocked,
               ]}
             >
-              <View style={[styles.achievementIconWrap, achievement.unlocked && styles.achievementIconWrapUnlocked]}>
-                <Ionicons
-                  name={achievement.unlocked ? "trophy" : "lock-closed"}
-                  size={16}
-                  color={achievement.unlocked ? "#ffffff" : "#7a1c1c"}
-                />
-              </View>
+              {achievement.target === 5 ? (
+                <View style={[styles.firstAchievementIconBadge, !achievement.unlocked && styles.firstAchievementIconBadgeLocked]}>
+                  <View style={styles.firstAchievementLeaf} />
+                  <Ionicons name="location" size={16} color="#0f766e" />
+                </View>
+              ) : (
+                <View style={[styles.achievementIconWrap, achievement.unlocked && styles.achievementIconWrapUnlocked]}>
+                  <Ionicons
+                    name={achievement.unlocked ? "trophy" : "lock-closed"}
+                    size={16}
+                    color={achievement.unlocked ? "#ffffff" : "#7a1c1c"}
+                  />
+                </View>
+              )}
               <Text style={[styles.achievementTitle, achievement.unlocked && styles.achievementTitleUnlocked]}>
                 {achievement.target} spots
               </Text>
@@ -3666,6 +3673,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#6b7280",
     fontWeight: "600",
+  },
+  firstAchievementIconBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#99f6e4",
+    backgroundColor: "#ccfbf1",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  firstAchievementIconBadgeLocked: {
+    opacity: 0.45,
+  },
+  firstAchievementLeaf: {
+    position: "absolute",
+    bottom: 5,
+    left: 5,
+    width: 8,
+    height: 5,
+    borderRadius: 6,
+    backgroundColor: "#65a30d",
+    transform: [{ rotate: "-25deg" }],
   },
   creatorCard: {
     marginTop: 10,
