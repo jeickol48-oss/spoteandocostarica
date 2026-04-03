@@ -1304,6 +1304,10 @@ export default function App() {
   };
 
   const handleCreateSpot = () => {
+    if (!requireSavedProfile("Para agregar un spot primero debes crear y guardar tu perfil.")) {
+      return;
+    }
+
     if (!newSpot.name.trim()) {
       Alert.alert("Falta nombre", "Escribe el nombre del spot.");
       return;
@@ -1341,6 +1345,13 @@ export default function App() {
       features: [],
     });
     setActiveTab("home");
+  };
+
+  const openAddSpotTab = () => {
+    if (!requireSavedProfile("Para agregar spots debes crear y guardar tu perfil.")) {
+      return;
+    }
+    setActiveTab("agregar");
   };
 
   const renderHome = () => (
@@ -2725,7 +2736,7 @@ export default function App() {
           <Ionicons name="search-outline" size={22} color={activeTab === "buscar" ? "#d62828" : "#6b7280"} />
           <Text style={activeTab === "buscar" ? styles.navTextActive : styles.navText}>{uiText.navSearch}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navAddWrapper} onPress={() => setActiveTab("agregar")}>
+        <TouchableOpacity style={styles.navAddWrapper} onPress={openAddSpotTab}>
           <View style={styles.navAddButton}>
             <Text style={styles.navAddIcon}>＋</Text>
           </View>
