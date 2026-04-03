@@ -1113,6 +1113,89 @@ export default function App() {
     }
   };
 
+  const handleSecretSpotPress = async () => {
+    let targetProvince = nearbyProvince;
+
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status === "granted") {
+        const current = await Location.getCurrentPositionAsync({});
+        if (current?.coords) {
+          const currentCoords = {
+            latitude: current.coords.latitude,
+            longitude: current.coords.longitude,
+          };
+          setSelectedLocation(currentCoords);
+
+          const geocode = await Location.reverseGeocodeAsync(currentCoords);
+          const geo = geocode?.[0];
+          const label = geo?.region || geo?.subregion || geo?.city || "";
+
+          if (label) {
+            const normalizeText = (value) =>
+              value
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[̀-ͯ]/g, "")
+                .trim();
+
+            const normalizedLabel = normalizeText(label);
+            const provincesOnly = provinces.filter((province) => province !== "Todas");
+            const matchedProvince = provincesOnly.find((province) => {
+              const normalizedProvince = normalizeText(province);
+              return (
+                normalizedLabel.includes(normalizedProvince) ||
+                normalizedProvince.includes(normalizedLabel)
+              );
+            });
+            if (matchedProvince) {
+              targetProvince = matchedProvince;
+              setNearbyProvince(matchedProvince);
+            }
+          }
+        }
+      }
+    } catch (_error) {
+      // Si falla ubicación, usa la provincia guardada del usuario.
+    }
+
+    const normalizedSpots = spots.map(normalizeSpot);
+    const nearbyCandidates = normalizedSpots.filter((spot) => spot.province === targetProvince);
+    const candidatePool = nearbyCandidates.length ? nearbyCandidates : normalizedSpots;
+
+    const sortedByRating = candidatePool
+      .map((spot) => ({
+        spot,
+        average: getSpotAverageRating(spot.id),
+      }))
+      .sort((a, b) => b.average - a.average);
+
+    const selectedCandidate =
+      sortedByRating.find((entry) => entry.average >= 4.2)?.spot || sortedByRating[0]?.spot;
+
+    if (!selectedCandidate) {
+      Alert.alert(
+        isEnglish ? "No spots available" : "Sin spots disponibles",
+        isEnglish ? "Try again later." : "Intenta de nuevo más tarde."
+      );
+      return;
+    }
+
+    Alert.alert(
+      isEnglish ? "Secret Spot" : "Spot Secreto",
+      isEnglish
+        ? "To unlock this top-rated nearby spot, first watch a short ad break. (Video coming soon)"
+        : "Para desbloquear este spot cercano con muy buena calificación, primero debes ver una pequeña pausa publicitaria. (Video pronto)",
+      [
+        { text: isEnglish ? "Cancel" : "Cancelar", style: "cancel" },
+        {
+          text: isEnglish ? "Watch break & open" : "Ver pausa y abrir",
+          onPress: () => openHomeSpotDetail(selectedCandidate, "home"),
+        },
+      ]
+    );
+  };
+
   const pickImageFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -1284,6 +1367,15 @@ export default function App() {
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.homeFeatured}</Text>
         <Text style={[styles.sectionCount, { color: theme.muted }]}>{spots.length} {uiText.spotsCount}</Text>
       </View>
+      <TouchableOpacity style={styles.secretSpotButton} onPress={handleSecretSpotPress}>
+        <View>
+          <Text style={styles.secretSpotTitle}>✨ Spot Secreto</Text>
+          <Text style={styles.secretSpotSubtitle}>
+            {isEnglish ? "Unlock a top-rated nearby place" : "Desbloquea un spot cercano con súper calificación"}
+          </Text>
+        </View>
+        <Ionicons name="flash" size={20} color="#ffffff" />
+      </TouchableOpacity>
 
       <View style={[styles.searchCard, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 12 }]}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{uiText.rankingsTitle}</Text>
@@ -3205,6 +3297,29 @@ const styles = StyleSheet.create({
   nearbyButtonActive: { backgroundColor: "#7a1c1c", borderColor: "#7a1c1c" },
   nearbyText: { color: "#7a1c1c", fontWeight: "600", fontSize: 12 },
   nearbyTextActive: { color: "#ffffff" },
+  secretSpotButton: {
+    marginBottom: 12,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: "#be123c",
+    borderWidth: 1,
+    borderColor: "#9f1239",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  secretSpotTitle: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  secretSpotSubtitle: {
+    marginTop: 2,
+    color: "#ffe4e6",
+    fontSize: 12,
+    fontWeight: "600",
+  },
 
   resultCard: {
     flexDirection: "row",
