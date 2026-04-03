@@ -102,21 +102,58 @@ function removeDuplicateNamedImportMembers(content) {
   return output.join('\n');
 }
 
+function findDuplicateNamedImportMembers(content) {
+  const lines = content.split(/\r?\n/);
+  let insideImportBlock = false;
+  const seenMembers = new Set();
+  const duplicates = new Set();
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('import {') && !trimmed.includes('} from ')) {
+      insideImportBlock = true;
+      seenMembers.clear();
+      continue;
+    }
+
+    if (insideImportBlock) {
+      if (trimmed.startsWith('} from ')) {
+        insideImportBlock = false;
+        continue;
+      }
+
+      if (trimmed === '') continue;
+
+      const rawMember = trimmed.replace(/,$/, '');
+      if (seenMembers.has(rawMember)) {
+        duplicates.add(rawMember);
+      } else {
+        seenMembers.add(rawMember);
+      }
+    }
+  }
+
+  return [...duplicates];
+}
+
 const files = walk(ROOT);
 const conflicts = [];
 
 for (const filePath of files) {
   const content = fs.readFileSync(filePath, 'utf8');
-  if (!CONFLICT_PATTERNS.some((pattern) => pattern.test(content))) continue;
+  const lineNumbers = CONFLICT_PATTERNS.some((pattern) => pattern.test(content))
+    ? findConflictLines(content)
+    : [];
+  const duplicateMembers = findDuplicateNamedImportMembers(content);
 
-  const lineNumbers = findConflictLines(content);
-  if (lineNumbers.length) {
-    if (SHOULD_FIX) {
-      const cleaned = removeDuplicateNamedImportMembers(removeConflictMarkerLines(content));
-      fs.writeFileSync(filePath, cleaned, 'utf8');
-    }
-    conflicts.push({ filePath, lineNumbers });
+  if (!lineNumbers.length && !duplicateMembers.length) continue;
+
+  if (SHOULD_FIX) {
+    const cleaned = removeDuplicateNamedImportMembers(removeConflictMarkerLines(content));
+    fs.writeFileSync(filePath, cleaned, 'utf8');
   }
+  conflicts.push({ filePath, lineNumbers, duplicateMembers });
 }
 
 if (SHOULD_FIX && !conflicts.length) {
@@ -130,24 +167,36 @@ if (SHOULD_FIX && !conflicts.length) {
 }
 
 if (!conflicts.length) {
-  console.log('✅ No se encontraron marcadores de conflicto de merge.');
+  console.log('✅ No se encontraron conflictos de merge ni imports duplicados.');
   process.exit(0);
 }
 
 if (SHOULD_FIX) {
-  console.log('🛠️ Se eliminaron líneas de marcadores de conflicto en los siguientes archivos:');
+  console.log('🛠️ Se corrigieron conflictos/imports duplicados en los siguientes archivos:');
   for (const conflict of conflicts) {
     const relativePath = path.relative(ROOT, conflict.filePath);
-    console.log(`- ${relativePath}: líneas ${conflict.lineNumbers.join(', ')}`);
+    const conflictInfo = conflict.lineNumbers.length
+      ? `líneas ${conflict.lineNumbers.join(', ')}`
+      : 'sin marcadores de merge';
+    const duplicateInfo = conflict.duplicateMembers.length
+      ? `imports duplicados: ${conflict.duplicateMembers.join(', ')}`
+      : 'sin imports duplicados';
+    console.log(`- ${relativePath}: ${conflictInfo}; ${duplicateInfo}`);
   }
-  console.log('\n✅ Marcadores removidos. Revisa el código resultante y conserva únicamente el bloque correcto.');
+  console.log('\n✅ Correcciones aplicadas. Revisa el código resultante y conserva únicamente el bloque correcto.');
   process.exit(0);
 }
 
-console.error('❌ Se encontraron marcadores de conflicto de merge:');
+console.error('❌ Se encontraron problemas de merge/imports:');
 for (const conflict of conflicts) {
   const relativePath = path.relative(ROOT, conflict.filePath);
-  console.error(`- ${relativePath}: líneas ${conflict.lineNumbers.join(', ')}`);
+  const conflictInfo = conflict.lineNumbers.length
+    ? `líneas ${conflict.lineNumbers.join(', ')}`
+    : 'sin marcadores de merge';
+  const duplicateInfo = conflict.duplicateMembers.length
+    ? `imports duplicados: ${conflict.duplicateMembers.join(', ')}`
+    : 'sin imports duplicados';
+  console.error(`- ${relativePath}: ${conflictInfo}; ${duplicateInfo}`);
 }
-console.error('\nResuelve los conflictos eliminando <<<<<<<, ======= y >>>>>>> y conservando solo el código correcto.');
+console.error('\nEjecuta `npm run fix:conflicts` para auto-corregir o resuelve manualmente.');
 process.exit(1);
