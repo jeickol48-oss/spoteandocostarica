@@ -6,7 +6,7 @@ const ROOT = process.cwd();
 const SHOULD_FIX = process.argv.includes('--fix');
 const EXCLUDED_DIRS = new Set(['.git', 'node_modules', '.expo', 'android', 'ios']);
 const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx', '.json', '.md']);
-const CONFLICT_PATTERNS = [/^<<<<<<< /m, /^=======$/m, /^>>>>>>> /m];
+const CONFLICT_PATTERNS = [/^\s*<<<<<<< /m, /^\s*=======$/m, /^\s*>>>>>>> /m, /^\s*\|\|\|\|\|\|\| /m];
 
 function walk(dir, files = []) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -29,7 +29,13 @@ function findConflictLines(content) {
   const lines = content.split(/\r?\n/);
   const matches = [];
   lines.forEach((line, idx) => {
-    if (line.startsWith('<<<<<<< ') || line === '=======' || line.startsWith('>>>>>>> ')) {
+    const trimmedStart = line.trimStart();
+    if (
+      trimmedStart.startsWith('<<<<<<< ') ||
+      trimmedStart === '=======' ||
+      trimmedStart.startsWith('>>>>>>> ') ||
+      trimmedStart.startsWith('||||||| ')
+    ) {
       matches.push(idx + 1);
     }
   });
@@ -40,10 +46,15 @@ function removeConflictMarkerLines(content) {
   return content
     .split(/\r?\n/)
     .filter(
-      (line) =>
-        !line.startsWith('<<<<<<< ') &&
-        line !== '=======' &&
-        !line.startsWith('>>>>>>> ')
+      (line) => {
+        const trimmedStart = line.trimStart();
+        return (
+          !trimmedStart.startsWith('<<<<<<< ') &&
+          trimmedStart !== '=======' &&
+          !trimmedStart.startsWith('>>>>>>> ') &&
+          !trimmedStart.startsWith('||||||| ')
+        );
+      }
     )
     .join('\n');
 }
