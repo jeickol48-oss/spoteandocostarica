@@ -28,6 +28,7 @@ const fallbackImageUrl =
 
 const defaultUserProvince = "San José";
 const { width: screenWidth } = Dimensions.get("window");
+const addSpotMilestones = [5, 20, 50, 100];
 
 const provinceCoordinates = {
   "San José": { latitude: 9.9281, longitude: -84.0907 },
@@ -2275,6 +2276,15 @@ export default function App() {
     const myFollowers = getFollowersForUser(profile.username);
     const myFollowing = getFollowingForUser(profile.username);
     const visibleConnections = connectionTab === "followers" ? myFollowers : myFollowing;
+    const spotCreationAchievements = addSpotMilestones.map((target) => {
+      const unlocked = mySpots.length >= target;
+      return {
+        id: `spots-${target}`,
+        target,
+        unlocked,
+        progress: Math.min(mySpots.length, target),
+      };
+    });
 
     return (
       <View style={styles.profileEditorCard}>
@@ -2382,6 +2392,38 @@ export default function App() {
         ) : (
           <Text style={styles.profileSubtitle}>Sin fotos en el perfil aún.</Text>
         )}
+
+        <View style={styles.profileGalleryHeader}>
+          <Text style={styles.filterTitle}>Logros de creación</Text>
+          <Text style={styles.sectionCount}>
+            {spotCreationAchievements.filter((achievement) => achievement.unlocked).length}/{spotCreationAchievements.length}
+          </Text>
+        </View>
+        <View style={styles.achievementGrid}>
+          {spotCreationAchievements.map((achievement) => (
+            <View
+              key={achievement.id}
+              style={[
+                styles.achievementCard,
+                achievement.unlocked ? styles.achievementCardUnlocked : styles.achievementCardLocked,
+              ]}
+            >
+              <View style={[styles.achievementIconWrap, achievement.unlocked && styles.achievementIconWrapUnlocked]}>
+                <Ionicons
+                  name={achievement.unlocked ? "trophy" : "lock-closed"}
+                  size={16}
+                  color={achievement.unlocked ? "#ffffff" : "#7a1c1c"}
+                />
+              </View>
+              <Text style={[styles.achievementTitle, achievement.unlocked && styles.achievementTitleUnlocked]}>
+                {achievement.target} spots
+              </Text>
+              <Text style={styles.achievementProgress}>
+                {achievement.progress}/{achievement.target}
+              </Text>
+            </View>
+          ))}
+        </View>
 
         <View style={styles.profileGalleryHeader}>
           <Text style={styles.filterTitle}>Spots agregados ({mySpots.length})</Text>
@@ -3573,6 +3615,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     marginTop: 2,
+  },
+  achievementGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  achievementCard: {
+    width: "48%",
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 8,
+    alignItems: "center",
+  },
+  achievementCardUnlocked: {
+    borderColor: "#fecdd3",
+    backgroundColor: "#fff1f2",
+  },
+  achievementCardLocked: {
+    borderColor: "#f0dada",
+    backgroundColor: "#ffffff",
+  },
+  achievementIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#f2d4d4",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fffafa",
+  },
+  achievementIconWrapUnlocked: {
+    borderColor: "#be123c",
+    backgroundColor: "#be123c",
+  },
+  achievementTitle: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  achievementTitleUnlocked: {
+    color: "#7a1c1c",
+  },
+  achievementProgress: {
+    marginTop: 2,
+    fontSize: 11,
+    color: "#6b7280",
+    fontWeight: "600",
   },
   creatorCard: {
     marginTop: 10,
