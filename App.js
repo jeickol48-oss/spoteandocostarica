@@ -318,7 +318,7 @@ export default function App() {
     exactLocation: isEnglish ? "Exact spot location" : "Ubicación exacta del spot",
     useMyLocation: isEnglish ? "Use my location" : "Usar mi ubicación",
     openSelectedMap: isEnglish ? "Open selected location in Google Maps" : "Abrir ubicación seleccionada en Google Maps",
-    uploadSpotPhotos: isEnglish ? "Upload spot photos (max 10)" : "Cargar fotos del spot (máximo 10)",
+    uploadSpotPhotos: isEnglish ? "Upload spot photos (max 5)" : "Cargar fotos del spot (máximo 5)",
     saveSpot: isEnglish ? "Save spot" : "Guardar spot",
     yourProfile: isEnglish ? "Your profile" : "Tu perfil",
     changeProfilePhoto: isEnglish ? "Change profile photo" : "Cambiar foto de perfil",
@@ -1248,13 +1248,13 @@ export default function App() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
       allowsMultipleSelection: true,
-      selectionLimit: 10,
+      selectionLimit: 5,
     });
 
     if (!result.canceled && result.assets?.length) {
       const selectedUris = result.assets.map((asset) => asset.uri).filter(Boolean);
       setNewSpot((current) => {
-        const merged = [...current.spotPhotos, ...selectedUris].slice(0, 10);
+        const merged = [...current.spotPhotos, ...selectedUris].slice(0, 5);
         return { ...current, spotPhotos: merged };
       });
     }
@@ -1367,6 +1367,11 @@ export default function App() {
       return;
     }
 
+    if (!newSpot.spotPhotos.length) {
+      Alert.alert("Falta foto", "Debes agregar al menos una foto del spot.");
+      return;
+    }
+
     if (!selectedLocation.latitude || !selectedLocation.longitude) {
       Alert.alert("Falta ubicación", "Selecciona la ubicación del spot en el mapa.");
       return;
@@ -1384,7 +1389,7 @@ export default function App() {
       mapUrl,
       imageUrl: newSpot.spotPhotos[0] || fallbackImageUrl,
       description: newSpot.description.trim(),
-      photos: newSpot.spotPhotos.length ? newSpot.spotPhotos : [fallbackImageUrl],
+      photos: newSpot.spotPhotos,
       features: newSpot.features,
     };
 
