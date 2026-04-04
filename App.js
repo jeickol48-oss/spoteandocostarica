@@ -165,6 +165,7 @@ export default function App() {
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [creatorReturnTab, setCreatorReturnTab] = useState("buscar");
   const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
+  const [showAllCreatorSpots, setShowAllCreatorSpots] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [gallerySourceTab, setGallerySourceTab] = useState("detalle");
@@ -299,6 +300,7 @@ export default function App() {
     mapHint: isEnglish ? "Tap a pin to open spot detail" : "Toca un pin para abrir el detalle del spot",
     allFeatures: isEnglish ? "All features" : "Todas las características",
     searchCreators: isEnglish ? "Search creators" : "Buscar creadores",
+    showAllSharedSpots: isEnglish ? "Show all shared spots" : "Mostrar todos los spots",
     searchCreatorsPlaceholder: isEnglish ? "Search creator profiles..." : "Buscar perfiles de creadores...",
     openMap: isEnglish ? "Open map" : "Abrir mapa",
     save: isEnglish ? "Save" : "Guardar",
@@ -701,6 +703,10 @@ export default function App() {
       mainScrollRef.current?.scrollTo({ y: 0, animated: false });
     });
   }, [activeTab]);
+
+  useEffect(() => {
+    setShowAllCreatorSpots(false);
+  }, [selectedCreator?.username]);
 
   const getSpotCoordinate = (spot) => {
     const match = spot?.mapUrl?.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
@@ -2045,6 +2051,7 @@ export default function App() {
     const creatorUnlockedAchievements = getSpotCreationAchievements(creatorAchievementCount).filter(
       (achievement) => achievement.unlocked
     );
+    const visibleCreatorSpots = showAllCreatorSpots ? sortedCreatorSpots : sortedCreatorSpots.slice(0, 5);
 
     return (
       <View style={[styles.profileEditorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -2136,8 +2143,8 @@ export default function App() {
           </ScrollView>
         </View>
 
-        {sortedCreatorSpots.length ? (
-          sortedCreatorSpots.map((spot) => (
+        {visibleCreatorSpots.length ? (
+          visibleCreatorSpots.map((spot) => (
             <TouchableOpacity
               key={`creator-${spot.id}`}
               style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -2155,6 +2162,11 @@ export default function App() {
         ) : (
           <Text style={[styles.profileSubtitle, { color: theme.muted }]}>Este creador aún no tiene spots publicados.</Text>
         )}
+        {!showAllCreatorSpots && sortedCreatorSpots.length > 5 ? (
+          <TouchableOpacity style={styles.viewAllResultsButton} onPress={() => setShowAllCreatorSpots(true)}>
+            <Text style={styles.viewAllResultsText}>{uiText.showAllSharedSpots}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
     );
   };
