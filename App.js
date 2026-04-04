@@ -238,6 +238,12 @@ export default function App() {
     return clean ? `@${clean}` : "";
   };
 
+  const sanitizeUsernameInput = (value) => {
+    const withoutAt = value.replace(/^@+/, "");
+    const cleaned = withoutAt.replace(/[^a-zA-Z0-9_]/g, "");
+    return cleaned ? `@${cleaned}` : "";
+  };
+
   const theme = settings.darkMode
     ? {
         background: "#0f1115",
@@ -1303,6 +1309,14 @@ export default function App() {
     }
 
     const normalizedUsername = normalizeUsername(profileForm.username);
+    if (!/^@[A-Za-z0-9_]+$/.test(normalizedUsername)) {
+      Alert.alert(
+        "Usuario inválido",
+        "El arroba solo puede contener letras, números y guion bajo. Sin espacios ni caracteres especiales."
+      );
+      return;
+    }
+
     const payload = {
       ...profileForm,
       username: normalizedUsername,
@@ -1345,6 +1359,11 @@ export default function App() {
 
     if (!newSpot.name.trim()) {
       Alert.alert("Falta nombre", "Escribe el nombre del spot.");
+      return;
+    }
+
+    if (newSpot.description.trim().length < 10) {
+      Alert.alert("Descripción muy corta", "La descripción del spot debe tener al menos 10 caracteres.");
       return;
     }
 
@@ -2350,7 +2369,7 @@ export default function App() {
       />
       <TextInput
         value={profileForm.username}
-        onChangeText={(value) => setProfileForm((current) => ({ ...current, username: value }))}
+        onChangeText={(value) => setProfileForm((current) => ({ ...current, username: sanitizeUsernameInput(value) }))}
         placeholder={uiText.usernamePlaceholder}
         placeholderTextColor={themedPlaceholderColor}
         style={[styles.searchInput, themedInputStyle, styles.locationLabelInput]}
