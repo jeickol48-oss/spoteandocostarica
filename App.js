@@ -166,6 +166,7 @@ export default function App() {
   const [creatorReturnTab, setCreatorReturnTab] = useState("buscar");
   const [creatorSpotSort, setCreatorSpotSort] = useState("popular");
   const [showAllCreatorSpots, setShowAllCreatorSpots] = useState(false);
+  const [showAllMySpots, setShowAllMySpots] = useState(false);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
   const [gallerySourceTab, setGallerySourceTab] = useState("detalle");
@@ -707,6 +708,12 @@ export default function App() {
   useEffect(() => {
     setShowAllCreatorSpots(false);
   }, [selectedCreator?.username]);
+
+  useEffect(() => {
+    if (activeTab === "perfil") {
+      setShowAllMySpots(false);
+    }
+  }, [activeTab]);
 
   const getSpotCoordinate = (spot) => {
     const match = spot?.mapUrl?.match(/q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
@@ -2392,6 +2399,15 @@ export default function App() {
     const mySpots = spots
       .map(normalizeSpot)
       .filter((spot) => spot.user === profile.username);
+    const sortedMySpots = [...mySpots].sort((a, b) => {
+      const ratingDiff = getSpotAverageRating(b.id) - getSpotAverageRating(a.id);
+      if (ratingDiff !== 0) return ratingDiff;
+      const visitsA = spotVisitEvents.filter((event) => event.spotId === a.id).length;
+      const visitsB = spotVisitEvents.filter((event) => event.spotId === b.id).length;
+      if (visitsB !== visitsA) return visitsB - visitsA;
+      return a.name.localeCompare(b.name, "es");
+    });
+    const visibleMySpots = showAllMySpots ? sortedMySpots : sortedMySpots.slice(0, 5);
     const safeProfilePhotos = Array.isArray(profile.photos) ? profile.photos : [];
     const myFollowers = getFollowersForUser(profile.username);
     const myFollowing = getFollowingForUser(profile.username);
@@ -2510,8 +2526,8 @@ export default function App() {
         <View style={styles.profileGalleryHeader}>
           <Text style={styles.filterTitle}>Spots agregados ({mySpots.length})</Text>
         </View>
-        {mySpots.length ? (
-          mySpots.map((spot) => (
+        {visibleMySpots.length ? (
+          visibleMySpots.map((spot) => (
             <TouchableOpacity key={`my-${spot.id}`} style={styles.resultCard} onPress={() => openHomeSpotDetail(spot, "perfil")}>
               <Image source={{ uri: spot.imageUrl }} style={styles.resultImage} />
               <View style={styles.resultMeta}>
@@ -2529,6 +2545,11 @@ export default function App() {
         ) : (
           <Text style={styles.profileSubtitle}>Todavía no has agregado spots.</Text>
         )}
+        {!showAllMySpots && sortedMySpots.length > 5 ? (
+          <TouchableOpacity style={styles.viewAllResultsButton} onPress={() => setShowAllMySpots(true)}>
+            <Text style={styles.viewAllResultsText}>Ver todos</Text>
+          </TouchableOpacity>
+        ) : null}
 
         <Modal
           visible={isConnectionsModalVisible}
